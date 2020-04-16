@@ -37,6 +37,7 @@ plot_monolix_data <- function(path_data, seed)
   dir_save <- "../../Result/Data_set/"
   if(!dir.exists(dir_save)) dir.create(dir_save, recursive = T)
   path_save <- str_c(dir_save, "Data_set.pdf")
+  path_save_png <- str_c(dir_save, "Data_set.png")
   
   # The summarised data for the plot
   data_sum <- data %>%
@@ -70,6 +71,7 @@ plot_monolix_data <- function(path_data, seed)
   
   
   ggsave(path_save, plot = p, height = BASE_HEIGHT-0.5, width = BASE_WIDTH)  
+  ggsave(path_save_png, plot = p, height = BASE_HEIGHT-0.5, width = BASE_WIDTH)  
   
   return(0)
 }
