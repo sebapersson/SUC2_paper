@@ -1,0 +1,39 @@
+DESCRIPTION: The simple-feedback model for describing the SUC2 dynamics 
+
+Variables:
+- SNF1_p, the SNF1-pathway activity on SUC2 
+- X-unknown potential cascade of events (representing cellular response to starvation)
+- SUC2, the SUC2 promoter activity measured via YFP 
+
+ [LONGITUDINAL]
+input = {k1, k3, k5, k6, k7,k8, k9, SUC20, tau_X}
+
+EQUATION:
+; Initial conditions 
+t0 = 0
+Mig1_0 = 1
+SUC2_0 = SUC20
+X_0 = 0
+tau_SUC2 = 32
+Mig10 = 1
+
+; Capturing the external glucose shift 
+if t < 0.0483
+   rate_in = k1
+   HX = 0
+else
+   HX = 1
+   rate_in = k1 / 40
+end
+
+; Equations derived from assuming a steady state 
+k4 = k3 / ((k7 + Mig10*Mig10) * SUC20)
+k2 = k1 / Mig10
+
+; Dynamics, tax_X = tau-feedback 
+ddt_Mig1 = rate_in - k2*Mig1 + k5 * delay(X, tau_X)
+ddt_SUC2 = k3 / (k7 + delay(Mig1, tau_SUC2)^2) - k4 * SUC2  
+ddt_X = HX * k8 / (k9 + Mig1) - k6 * X
+
+OUTPUT:
+output = {SUC2}
