@@ -20,6 +20,8 @@ using LinearAlgebra
 #   functions for STS
 #   functions for starting values
 
+print(Pkg.installed())
+
 # ---------------------------------------------------------------------------
 # Shared structs
 # ---------------------------------------------------------------------------
