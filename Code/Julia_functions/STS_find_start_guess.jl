@@ -153,7 +153,6 @@ function solve_dde_system(model, param_model, param_info)
     dde_solution = solve(dde_problem, alg, verbose = false)
 
     if dde_solution.retcode != success_symbol
-        @printf("Failed solving dde system\n")
         return "exit"
     else
         return dde_solution
