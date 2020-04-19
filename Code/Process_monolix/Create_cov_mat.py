@@ -97,6 +97,10 @@ def create_cor_mat(dir_pop, n_var):
 
 
 # Important that dir_pop_param ends with /
+# Simple feedback
 dir_pop_param = "../Monolix_code/Simple_feedback/Simple_feedback/"
+cov_mat = create_cor_mat(dir_pop_param, n_var=1)
+# Snf1 feedback 
+dir_pop_param = "../Monolix_code/Snf1_feedback/Snf1_feedback/"
 cov_mat = create_cor_mat(dir_pop_param, n_var=1)
 
