@@ -1,0 +1,50 @@
+DESCRIPTION: The simple-feedback model for describing the SUC2 dynamics 
+
+Variables:
+- SNF1p, phosphorylated SNF1 
+- X, feedback component that acts on SNF1 
+- SUC2, the SUC2 promoter activity measured via YFP
+- Mig1, dephosphorylated nulcear Mig1
+- Mig1p, phosphorylated nuclear Mig1 
+
+
+[LONGITUDINAL]
+input = {k1, k3,  k6, k7, k8, k11, k14, k15, SUC20}
+
+EQUATION:
+; Initial conditions
+Mig10 = 1.0
+Mig1p0 = 0.0
+t0 = 0
+Mig1_0 = Mig10
+Mig1p_0 = Mig1p0
+SUC2_0 = SUC20
+X_0 = 0
+SNF1p_0 = 0
+
+; Assuming 32 minutes maturation time 
+tau_SUC2 = 32
+
+; Capturing the external glucose shift 
+if t < 0.0483
+   k2 = k1 
+   HX = 0
+else
+   HX = 1
+   k2 = k1 / 40.0 * SNF1p
+end
+
+k5 = -k7 * Mig1p0 + k8 * Mig10
+k13 = k11 / ((0.1 + Mig10^2) * SUC20) 
+
+
+; Dynamics 
+ddt_SNF1p = k1 - k2  - k3 * SNF1p * X
+ddt_Mig1 = k5 - k6*SNF1p*Mig1 + k7*Mig1p - k8*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1 
+ddt_Mig1p = k6*SNF1p*Mig1 - k7*Mig1p - k8*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+ddt_SUC2 = k11 / (0.128+ delay(Mig1, tau_SUC2)^2) - k13 * SUC2
+ddt_X =  k14 * (SUC2 - SUC20)  - k15*X
+
+
+OUTPUT:
+output = {SUC2}
