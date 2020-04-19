@@ -52,6 +52,21 @@ elseif model_use == "snf1_feedback"
     tau_m = 32
 
     simulate_cells_nlme(result_dir, n_cells_simulate, tau_m, model_info)
+elseif model_use == "snf1_feedback_d"
+    @printf("Deletion experiments Snf1 feedback model\n")
+
+    # Simulation parameters
+    result_dir = "../Monolix_code/Snf1_feedback/Snf1_feedback/"
+    model_list = [snf1_feedback_model, snf1_feedback_d_snf1_x_model,
+        snf1_feedback_d_x_model, snf1_feedback_d_snf1_model]
+    tag_list = ["_wt", "_dsnf1_x", "_dx", "_dsnf1"]
+
+    for i in 1:length(model_list)
+        model_info = ModelInfo(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"],
+            [0.0, 1.0, 0.0, "u1", 0.0], 5, model_list[i])
+        simulate_cells_nlme(result_dir, n_cells_simulate, 32.0,
+            model_info, tag=tag_list[i])
+    end
 else
     @printf("Error: Model provided does not exist\n")
     exit(1)

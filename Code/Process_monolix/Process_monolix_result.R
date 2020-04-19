@@ -4,6 +4,7 @@ library(latex2exp)
 library(stringr)
 library(xtable)
 library(ggthemes)
+library(RColorBrewer)
 RNGkind("L'Ecuyer-CMRG")
 
 # This file contains the functions that take the exported data from monolix and creates graphs from it. 
@@ -527,6 +528,59 @@ plot_dist_tau_x <- function(path_to_result, dir_save, x_int = c(0, 500))
 }
 
 
+# Function that processes the deletion experiments for the snf1-feedback model. 
+# It plots the end result as a bar-chart, where certain time-points are slected. 
+# Args:
+#   path_to_result, path to the result folder
+#   dir_save, the directory in which to save the result 
+# Returns:
+#   void 
+plot_snf1_model_deletions <- function(path_to_result, dir_save)
+{
+  
+  # Process the mutations 
+  delete_list <- c("wt", "dsnf1", "dsnf1_x", "dx")
+  file_names <- str_c(path_to_result, "/", "Simulated_cells_", delete_list, ".csv")
+  data_list <- lapply(1:length(delete_list), function(i){
+    data_raw <- read_csv(file_names[i], col_types = cols()) 
+    data <- data_raw %>%
+      select(t, id, SUC2) %>%
+      group_by(t) %>%
+      summarise(mean = mean(SUC2, na.rm = T), 
+                sd = sd(SUC2, na.rm = T)) %>%
+      mutate(type = delete_list[i])
+    
+    # Select columns to take 
+    time_list <- c(0, 75, 150, 225, 300, 375)
+    i_list <- sapply(time_list, function(i) which.min((data$t - i)^2))
+    data <- data[i_list, ]
+    data$t = time_list
+    
+    return(data)})
+  
+  data_exp <- do.call(rbind, data_list) %>%
+    mutate(t = as.factor(t), type = as.factor(type)) %>%
+    mutate(y_frame = mean + sd)
+  data_exp$y_frame[1] <- 0
+  
+  my_blue_scale <- brewer.pal(9, "Blues")[-c(1, 2)]
+  p <- ggplot(data_exp, aes(type, mean, fill = t)) + 
+    geom_bar(stat='identity', position='dodge', color ="black") +
+    geom_errorbar(aes(ymin = mean-sd, ymax = mean+sd), width=0.2, position=position_dodge(.9)) + 
+    scale_x_discrete(limit = c("wt", "dsnf1", "dsnf1_x", "dx"), 
+                     labels = c("wt", "Δsnf1", "Δsnf1_x", "Δx")) +
+    geom_rangeframe(aes(type, y_frame), sides = "l",) + 
+    scale_fill_manual(values = my_blue_scale) +
+    labs(y = TeX("SUC2 intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
+    my_theme + theme(legend.position = "none", axis.title.x = element_blank())
+  
+  path_save <- str_c(dir_save, "Deletion_bar.pdf")  
+  ggsave(path_save, plot = p, width = BASE_WIDTH, height = BASE_HEIGHT)
+  
+  return(0)
+}
+
+
 # The main function for processing the monolix result (it will call other funcitons)
 # in this file. If certain data is not available, i.e the likelihood values, this 
 # function will point out that certain data is lacking. 
@@ -536,11 +590,12 @@ plot_dist_tau_x <- function(path_to_result, dir_save, x_int = c(0, 500))
 #   out_signals_name, the name of the outsignals 
 #   model_save, the name of the model to save, i.e Reg1_model3 
 #   param_save, if a specific parameter is to be saved when plotting the qq-plots 
-#   plot_dist_tau_x, control parameter that decides wheter or not to plot distribution of x
+#   plot_dist_tau_x, control parameter that decides wheter or not to plot distribution of 
+#   plot_Deletions, wheter or not deletions for the SNF1-feedback model should be plotted 
 # Returns:
 #   void 
 process_monolix_result <- function(path_to_result, out_signals, out_signals_name, model_save, 
-                                   param_save = F, plot_dist_tau_x = F)
+                                   param_save = F, plot_dist_tau_x = F, plot_deletions = F)
 {
   # Where to store the result 
   dir_save <- str_c("../../Result/Monolix_processed/", model_save, "/")
@@ -566,58 +621,22 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
   
   # Should only occur for models with tau_x in them 
   if(plot_dist_tau_x) plot_dist_tau_x(path_to_result, dir_save)
+  
+  # Should only occur for snf1 model 
+  if(plot_deletions) plot_snf1_model_deletions(path_to_result, dir_save)
 }
 
 
-# Function that processes deletion experiments for a model and plots the end result 
-# in a bar-chart, note that t = 0 high glucose and t = 500 is assumed to be low 
-# glucose steady state.
-# Args:
-#   path_to_result, path to the result directory 
-#   dir_save, path to directory where the result is saved 
-# Returns:
-#   void 
-plot_deletions <- function(path_to_result, dir_save)
-{
-  delete_list <- c("wt", "dsnf1", "dsnf1_x", "dx")
-  file_names <- str_c(path_to_result, "/", "Simulated_cells_", delete_list, ".csv")
-  data_list <- lapply(1:length(delete_list), function(i){
-    data_raw <- read_csv(file_names[i], col_types = cols()) 
-    data <- data_raw %>%
-      filter(t == 0 | near(t, 241.206030, tol = 0.1)) %>%
-      select(t, id, SUC2) %>%
-      group_by(t) %>%
-      summarise(mean = mean(SUC2, na.rm = T), 
-                sd = sd(SUC2, na.rm = T)) %>%
-      mutate(type = delete_list[i])
-    return(data)})
-  
-  data_exp <- do.call(rbind, data_list) %>%
-    mutate(t = as.factor(t), type = as.factor(type)) %>%
-    mutate(y_frame = mean + sd)
-  data_exp$y_frame[1] <- 0
-  
-  p <- ggplot(data_exp, aes(type, mean, fill = t)) + 
-    geom_bar(stat='identity', position='dodge', color ="black") +
-    geom_errorbar(aes(ymin = mean-sd, ymax = mean+sd), width=0.2, position=position_dodge(.9)) + 
-    scale_x_discrete(limit = c("wt", "dx", "dsnf1", "dsnf1_x"), 
-                     labels = c("wt", "Δx","Δsnf1", "Δsnf1_x")) +
-    geom_rangeframe(aes(type, y_frame), sides = "l",) + 
-    scale_fill_manual(values = my_colors[c(1, 6)]) +
-    labs(y = TeX("SUC2 intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
-    my_theme + theme(legend.position = "none", axis.title.x = element_blank())
-  
-  path_save <- str_c(dir_save, "Deletion_bar.pdf")  
-  ggsave(path_save, plot = p, width = BASE_WIDTH, height = BASE_HEIGHT)
-  
-  return(0)
-}
-
+# -----------------------------------------------------------------------
+# Process the end monolix result 
+# -----------------------------------------------------------------------
 
 path_to_result <- "../Monolix_code/Simple_feedback/Simple_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback", 
                        param_save = "k3", plot_dist_tau_x = T)
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
-process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback")
+process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
+                       deletions = T)
+
 
