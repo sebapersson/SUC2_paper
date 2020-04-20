@@ -637,6 +637,4 @@ process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback",
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
-                       deletions = T)
-
-
+                       plot_deletions = T)
