@@ -45,12 +45,13 @@ if model_use == "simple_feedback"
         ["k1", "k3", "k5", "k6", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
     generate_start_guess(state_info, start_guess, perturb_vec,
         simple_feedback_model, times_run=times_run, alg_choose=alg_use)
+
 elseif model_use == "snf1_feedback"
     @printf("SNF1 feedback model\n")
     state_info = produce_state_info(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"], ["SUC2"], [0.0, 1.0, 0.0, "u1", 0.0])
     perturb_vec = [9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 0.5]
     start_guess = StartGuess([5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0], [], [3.82], [1.0],
-        ["k1", "k3", "k6", "k7", "k8", "k11", "k14", "k15", "SUC20", "a1"])
+        ["k1", "k3", "k4", "k5", "k6", "k8", "k9", "SUC20", "a1"])
     generate_start_guess(state_info, start_guess, perturb_vec,
         snf1_feedback_model, times_run=times_run, alg_choose=alg_use)
 

@@ -94,36 +94,32 @@ end
 #  p, the model paraemters
 #  t, the time
 function snf1_feedback_model(du, u, h, p, t)
-    k1, k3, k6, k7, k8, k11, k14, k15, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
+    k1, k3, k4, k5, k6, k8, k9, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
+
+    # The maturation time delay
     hist_Mig1 = h(p, t - tau1)[2]
 
-    SNF1p = u[1]
-    Mig1 = u[2]
-    Mig1p = u[3]
-    SUC2 = u[4]
-    X = u[5]
+    SNF1p, Mig1, Mig1p, SUC2, X = u
 
+    # Glucose down shift
     if t < 0.0483
-       k2 = k1
-       HX = 0
+       rate_down = k1
     else
-       HX = 1
-       k2 = k1 / 40.0 * SNF1p
+       rate_down = k1 / 40.0 * SNF1p
     end
 
-    k5 = -k7 * Mig1p0 + k8 * Mig10
-    k9 = k7 * Mig1p0 + k8 * Mig10
-    k10 = k1 * (1 - 1 / 2.67) + 4
-    k13 = k11 / ((0.1 + Mig10^2) * SUC20)
+    # From assuming initial steady state
+    k2 = -k4 * Mig1p0 + k5 * Mig10
+    k7 = k6 / ((0.1 + Mig10^2) * SUC20)
 
-    du[1] = k1 - k2  - k3 * SNF1p * X
-    du[2] = k5 - k6*SNF1p*Mig1 + k7*Mig1p - k8*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
-    du[3] = k6*SNF1p*Mig1 - k7*Mig1p - k8*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
-    du[4] = k11 / (0.1 + hist_Mig1^2) - k13 * SUC2
-    du[5] = k14 * (SUC2-SUC20)  - k15*X
+    # SUC2 dynamics
+    du[1] = k1 - rate_down - k9*SNF1p*X
+    du[2] = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
+    du[3] = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+    du[4] = k6 / (0.1 + hist_Mig1^2) - k7*SUC2
+    du[5] = k8 * (SUC2 - SUC20) - k9*X
 end
-
 
 
 # The snf1 feedback model snf1 being deleted
@@ -134,34 +130,31 @@ end
 #  p, the model paraemters
 #  t, the time
 function snf1_feedback_d_snf1_model(du, u, h, p, t)
-    k1, k3, k6, k7, k8, k11, k14, k15, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    hist_Mig1 = h(p, t - tau1)[2]
+   k1, k3, k4, k5, k6, k8, k9, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    SNF1p = u[1]
-    Mig1 = u[2]
-    Mig1p = u[3]
-    SUC2 = u[4]
-    X = u[5]
+   # The maturation time delay
+   hist_Mig1 = h(p, t - tau1)[2]
 
-    if t < 0.0483
-       k2 = k1
-       HX = 0
-    else
-       HX = 1
-       k2 = k1 / 40.0 * SNF1p
-    end
+   SNF1p, Mig1, Mig1p, SUC2, X = u
 
-    k5 = -k7 * Mig1p0 + k8 * Mig10
-    k9 = k7 * Mig1p0 + k8 * Mig10
-    k10 = k1 * (1 - 1 / 2.67) + 4
-    k13 = k11 / ((0.1 + Mig10^2) * SUC20)
+   # Glucose down shift
+   if t < 0.0483
+      rate_down = k1
+   else
+      rate_down = k1 / 40.0 * SNF1p
+   end
 
-    du[1] = 0
-    du[2] = k5 - k6*SNF1p*Mig1 + k7*Mig1p - k8*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
-    du[3] = k6*SNF1p*Mig1 - k7*Mig1p - k8*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
-    du[4] = k11 / (0.1 + hist_Mig1^2) - k13 * SUC2
-    du[5] = k14 * (SUC2-SUC20)  - k15*X
+   # From assuming initial steady state
+   k2 = -k4 * Mig1p0 + k5 * Mig10
+   k7 = k6 / ((0.1 + Mig10^2) * SUC20)
+
+   # SUC2 dynamics
+   du[1] = 0.0
+   du[2] = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
+   du[3] = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+   du[4] = k6 / (0.1 + hist_Mig1^2) - k7*SUC2
+   du[5] = k8 * (SUC2 - SUC20) - k9*X
 end
 
 
@@ -173,34 +166,31 @@ end
 #  p, the model paraemters
 #  t, the time
 function snf1_feedback_d_snf1_x_model(du, u, h, p, t)
-    k1, k3, k6, k7, k8, k11, k14, k15, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    hist_Mig1 = h(p, t - tau1)[2]
+   k1, k3, k4, k5, k6, k8, k9, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    SNF1p = u[1]
-    Mig1 = u[2]
-    Mig1p = u[3]
-    SUC2 = u[4]
-    X = u[5]
+   # The maturation time delay
+   hist_Mig1 = h(p, t - tau1)[2]
 
-    if t < 0.0483
-       k2 = k1
-       HX = 0
-    else
-       HX = 1
-       k2 = k1 / 40.0 * SNF1p
-    end
+   SNF1p, Mig1, Mig1p, SUC2, X = u
 
-    k5 = -k7 * Mig1p0 + k8 * Mig10
-    k9 = k7 * Mig1p0 + k8 * Mig10
-    k10 = k1 * (1 - 1 / 2.67) + 4
-    k13 = k11 / ((0.1 + Mig10^2) * SUC20)
+   # Glucose down shift
+   if t < 0.0483
+      rate_down = k1
+   else
+      rate_down = k1 / 40.0 * SNF1p
+   end
 
-    du[1] = 0.0
-    du[2] = k5 - k6*SNF1p*Mig1 + k7*Mig1p - k8*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
-    du[3] = k6*SNF1p*Mig1 - k7*Mig1p - k8*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
-    du[4] = k11 / (0.1 + hist_Mig1^2) - k13 * SUC2
-    du[5] = 0.0
+   # From assuming initial steady state
+   k2 = -k4 * Mig1p0 + k5 * Mig10
+   k7 = k6 / ((0.1 + Mig10^2) * SUC20)
+
+   # SUC2 dynamics
+   du[1] = 0.0
+   du[2] = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
+   du[3] = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+   du[4] = k6 / (0.1 + hist_Mig1^2) - k7*SUC2
+   du[5] = 0.0
 end
 
 
@@ -212,32 +202,29 @@ end
 #  p, the model paraemters
 #  t, the time
 function snf1_feedback_d_x_model(du, u, h, p, t)
-    k1, k3, k6, k7, k8, k11, k14, k15, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    hist_Mig1 = h(p, t - tau1)[2]
+   k1, k3, k4, k5, k6, k8, k9, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
 
-    SNF1p = u[1]
-    Mig1 = u[2]
-    Mig1p = u[3]
-    SUC2 = u[4]
-    X = u[5]
+   # The maturation time delay
+   hist_Mig1 = h(p, t - tau1)[2]
 
-    if t < 0.0483
-       k2 = k1
-       HX = 0
-    else
-       HX = 1
-       k2 = k1 / 40.0 * SNF1p
-    end
+   SNF1p, Mig1, Mig1p, SUC2, X = u
 
-    k5 = -k7 * Mig1p0 + k8 * Mig10
-    k9 = k7 * Mig1p0 + k8 * Mig10
-    k10 = k1 * (1 - 1 / 2.67) + 4
-    k13 = k11 / ((0.1 + Mig10^2) * SUC20)
+   # Glucose down shift
+   if t < 0.0483
+      rate_down = k1
+   else
+      rate_down = k1 / 40.0 * SNF1p
+   end
 
-    du[1] = k1 - k2  - k3 * SNF1p * X
-    du[2] = k5 - k6*SNF1p*Mig1 + k7*Mig1p - k8*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
-    du[3] = k6*SNF1p*Mig1 - k7*Mig1p - k8*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
-    du[4] = k11 / (0.1 + hist_Mig1^2) - k13 * SUC2
-    du[5] = 0.0
+   # From assuming initial steady state
+   k2 = -k4 * Mig1p0 + k5 * Mig10
+   k7 = k6 / ((0.1 + Mig10^2) * SUC20)
+
+   # SUC2 dynamics
+   du[1] = k1 - rate_down - k9*SNF1p*X
+   du[2] = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
+   du[3] = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+   du[4] = k6 / (0.1 + hist_Mig1^2) - k7*SUC2
+   du[5] = 0.0
 end
