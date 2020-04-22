@@ -58,7 +58,7 @@ calculate_shrinkage_model <- function(path_to_result, out_signals)
     return(obs_vs_pred_data$IWRES)})
   
   IWRES_vec <- do.call(c, IWRES_list)
-  eps_shrinkage <- 1 - sd(IWRES_vec)
+  eps_shrinkage <- 1 - sd(IWRES_vec, na.rm = T)
   print(sprintf("Epsilon shrinkage = %.3f", eps_shrinkage))
   
   return(0)
@@ -537,8 +537,8 @@ plot_dist_tau_x <- function(path_to_result, dir_save, x_int = c(0, 500))
 #   void 
 plot_snf1_model_deletions <- function(path_to_result, dir_save)
 {
-  
   # Process the mutations 
+  path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
   delete_list <- c("wt", "dsnf1", "dsnf1_x", "dx")
   file_names <- str_c(path_to_result, "/", "Simulated_cells_", delete_list, ".csv")
   data_list <- lapply(1:length(delete_list), function(i){
@@ -571,8 +571,10 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save)
                      labels = c("wt", "Δsnf1", "Δsnf1_x", "Δx")) +
     geom_rangeframe(aes(type, y_frame), sides = "l",) + 
     scale_fill_manual(values = my_blue_scale) +
-    labs(y = TeX("SUC2 intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
-    my_theme + theme(legend.position = "none", axis.title.x = element_blank())
+    labs(y = TeX("Simulated SUC2 intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
+    my_theme + theme(legend.position = "none", 
+                     axis.title.x = element_blank(), 
+                     axis.text.x = element_blank())
   
   path_save <- str_c(dir_save, "Deletion_bar.pdf")  
   ggsave(path_save, plot = p, width = BASE_WIDTH, height = BASE_HEIGHT)
@@ -627,14 +629,15 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
 }
 
 
-# -----------------------------------------------------------------------
+# ----------------------------------------- ------------------------------
 # Process the end monolix result 
 # -----------------------------------------------------------------------
 
 path_to_result <- "../Monolix_code/Simple_feedback/Simple_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback", 
-                       param_save = "k3", plot_dist_tau_x = T)
+                       param_save = "k5", plot_dist_tau_x = T)
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
                        plot_deletions = T)
+  

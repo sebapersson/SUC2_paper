@@ -31,12 +31,12 @@ process_invertase_data <- function()
                         type = as.factor(c("wt", "wt", "dsnf", "dsnf")), 
                         glc = as.factor(c("high", "low", "high", "low"))) %>%
   mutate(frame = c(0, 0, 0, max(value)))
-  
+    
   p <- ggplot(data_values, aes(type, value, fill = glc)) + 
     geom_bar(stat='identity', position='dodge', color ="black") +
     geom_errorbar(aes(ymin = value-sd, ymax = value+sd), width=0.2, position=position_dodge(.9)) + 
     scale_x_discrete(limit = c("wt", "dsnf"), 
-                     labels = c("wt", "Δsnf1")) +
+                     labels = c("wt", expression(Delta*" snf1"))) +
     geom_rangeframe(aes(type, frame), sides = "l") + 
     scale_fill_manual(values = my_colors[c(1, 6)]) +
     labs(y = "Invertase activity [mU/mg]", x = "") + 

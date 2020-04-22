@@ -194,7 +194,7 @@ plot_qq_param <- function(path_to_result, dir_save, param_save = F)
   file_save <- str_c(dir_save, "qq_param.pdf")
   ggsave(file_save, plot = p, width = 12, height = 7)
 
-  if(param_save != F){
+    if(param_save != F){
     data_par <- data_param %>%
       select(param_save) %>%
       mutate_all(log) %>%
@@ -221,6 +221,6 @@ dir_save <- "../../Result/STS/Simple_feedback/"
 if(!dir.exists(path_to_result)) return(1)
 r1 <- plot_simulated_data(path_to_result, dir_save)
 r2 <- plot_IPRED(path_to_result, dir_save)
-r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k3")
+r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k5")
 
 if(r1 + r2 + r3 != 0) return(1)
