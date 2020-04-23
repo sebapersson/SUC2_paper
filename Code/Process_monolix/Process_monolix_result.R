@@ -364,13 +364,11 @@ create_latex_table_pop_param <- function(path_to_result, dir_save)
   # Read in the population parameters and make latex-table 
   path_pop_param <- str_c(path_to_result, "/populationParameters.txt")
   pop_param <- read_csv(path_pop_param, col_types = cols()) %>%
-    mutate(value = as.character(round(value, 2))) %>%
-    mutate(rse_sa = as.character(round(rse_sa, 1))) %>%
-    select(-se_sa) %>%
-    rename("Parameter" = "parameter") %>%
-    mutate(value = str_c(value, " (", rse_sa, ")")) %>%
-    select(-rse_sa) %>%
-    rename("Value" = "value")
+    mutate(Value = as.character(round(value, 2))) %>%
+    mutate(Se = as.character(round(se_sa, 4))) %>%
+    mutate(Rse = as.character(round(rse_sa, 1))) %>%
+    select(parameter, Value, Se, Rse) %>%
+    rename("Parameter" = "parameter")
   
   path_save_par <- str_c(dir_save, "Pop_param.csv")
   path_save_table <- str_c(dir_save, "LaTeX_table.txt")
