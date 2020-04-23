@@ -122,6 +122,42 @@ function snf1_feedback_model(du, u, h, p, t)
 end
 
 
+# The snf1 feedback model without any deletions (wild-type)
+# Args:
+#  du, the derivates (act as output)
+#  u, the model states
+#  h, the time-delay function
+#  p, the model paraemters
+#  t, the time
+function snf1_feedback_small_switch_model(du, u, h, p, t)
+
+    k1, k3, k4, k5, k6, k8, k9, tau1, SNF1p0, Mig10, Mig1p0, SUC20, X0  = p
+
+    # The maturation time delay
+    hist_Mig1 = h(p, t - tau1)[2]
+
+    SNF1p, Mig1, Mig1p, SUC2, X = u
+
+    # Glucose down shift
+    if t < 0.0483
+       rate_down = k1
+    else
+       rate_down = k1 / 2.677 * SNF1p
+    end
+
+    # From assuming initial steady state
+    k2 = -k4 * Mig1p0 + k5 * Mig10
+    k7 = k6 / ((0.1 + Mig10^2) * SUC20)
+
+    # SUC2 dynamics
+    du[1] = k1 - rate_down - k9*SNF1p*X
+    du[2] = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1
+    du[3] = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-3.0 * (SNF1p-4.5/3) ) ) ) * Mig1p
+    du[4] = k6 / (0.1 + hist_Mig1^2) - k7*SUC2
+    du[5] = k8 * (SUC2 - SUC20) - k9*X
+end
+
+
 # The snf1 feedback model snf1 being deleted
 # Args:
 #  du, the derivates (act as output)

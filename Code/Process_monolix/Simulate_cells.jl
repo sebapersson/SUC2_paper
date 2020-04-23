@@ -58,8 +58,9 @@ elseif model_use == "snf1_feedback_d"
     # Simulation parameters
     result_dir = "../Monolix_code/Snf1_feedback/Snf1_feedback/"
     model_list = [snf1_feedback_model, snf1_feedback_d_snf1_x_model,
-        snf1_feedback_d_x_model, snf1_feedback_d_snf1_model]
-    tag_list = ["_wt", "_dsnf1_x", "_dx", "_dsnf1"]
+        snf1_feedback_d_x_model, snf1_feedback_d_snf1_model,
+        snf1_feedback_small_switch_model]
+    tag_list = ["_wt", "_dsnf1_x", "_dx", "_dsnf1", "small_switch"]
 
     for i in 1:length(model_list)
         model_info = ModelInfo(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"],

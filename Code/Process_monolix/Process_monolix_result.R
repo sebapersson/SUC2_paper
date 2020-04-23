@@ -533,9 +533,10 @@ plot_dist_tau_x <- function(path_to_result, dir_save, x_int = c(0, 500))
 # Args:
 #   path_to_result, path to the result folder
 #   dir_save, the directory in which to save the result 
+#   plot_small_shift, if true will plot total Mig1 in a case for a smaller glucose shift 
 # Returns:
 #   void 
-plot_snf1_model_deletions <- function(path_to_result, dir_save)
+plot_snf1_model_deletions <- function(path_to_result, dir_save, plot_small_shift=F)
 {
   # Process the mutations 
   path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
@@ -579,6 +580,36 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save)
   path_save <- str_c(dir_save, "Deletion_bar.pdf")  
   ggsave(path_save, plot = p, width = BASE_WIDTH, height = BASE_HEIGHT)
   
+  # If the small shift data should be plotted 
+  if(plot_small_shift){
+    path_small_shift_data <- str_c(path_to_result, "/Simulated_cells_small_switch.csv")
+    if(!file.exists(path_small_shift_data)) return(1)
+    data_mig1t <- read_csv(path_small_shift_data, col_types = cols()) %>%
+      mutate(Mig1t = Mig1 + Mig1p) %>%
+      select(t, Mig1t) %>%
+      group_by(t) %>%
+      summarise(median = median(Mig1t, na.rm = T), 
+                quant05 = quantile(Mig1t, 0.05, na.rm = T), 
+                quant20 = quantile(Mig1t, 0.20, na.rm = T), 
+                quant80 = quantile(Mig1t, 0.8, na.rm = T), 
+                quant95 = quantile(Mig1t, 0.95, na.rm = T))
+    
+    data_min_max <- tibble(x = c(min(data_mig1t$t), max(data_mig1t$t)), 
+                             y = c(min(data_mig1t$quant05), max(data_mig1t$quant95)))
+    p <- ggplot(data_mig1t) + 
+      geom_line(aes(t, median), size = 1.2, color = my_colors[1]) + 
+      geom_ribbon(aes(x = t, ymin = quant05, ymax = quant95), color = NA, alpha = 0.25, fill = my_colors[1]) +
+      geom_ribbon(aes(x = t, ymin = quant20, ymax = quant80), color = NA, alpha = 0.35, fill = my_colors[1]) +
+      geom_line(aes(t, quant05), size = 1.2, color = my_colors[1], alpha = 0.8) +
+      geom_line(aes(t, quant95), size = 1.2, color = my_colors[1], alpha = 0.8) +
+      labs(x = "Time [min]", y = str_c("Simulated total Mig1")) +
+      geom_rangeframe(data=data_min_max, aes(x=x, y=y)) + 
+      my_theme
+    
+    path_save <- str_c(dir_save, "Small_shift.pdf")
+    ggsave(path_save, plot = p, width = BASE_WIDTH, height = BASE_HEIGHT)
+  }
+  
   return(0)
 }
 
@@ -594,10 +625,12 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save)
 #   param_save, if a specific parameter is to be saved when plotting the qq-plots 
 #   plot_dist_tau_x, control parameter that decides wheter or not to plot distribution of 
 #   plot_Deletions, wheter or not deletions for the SNF1-feedback model should be plotted 
+#   plot_small_shift, wheter or not small shift in glucose exists or should be plotted 
 # Returns:
 #   void 
 process_monolix_result <- function(path_to_result, out_signals, out_signals_name, model_save, 
-                                   param_save = F, plot_dist_tau_x = F, plot_deletions = F)
+                                   param_save = F, plot_dist_tau_x = F, plot_deletions = F, 
+                                   plot_small_shift = F)
 {
   # Where to store the result 
   dir_save <- str_c("../../Result/Monolix_processed/", model_save, "/")
@@ -625,7 +658,7 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
   if(plot_dist_tau_x) plot_dist_tau_x(path_to_result, dir_save)
   
   # Should only occur for snf1 model 
-  if(plot_deletions) plot_snf1_model_deletions(path_to_result, dir_save)
+  if(plot_deletions) plot_snf1_model_deletions(path_to_result, dir_save, plot_small_shift)
 }
 
 
@@ -639,5 +672,5 @@ process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback",
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
-                       plot_deletions = T)
+                       plot_deletions = T, plot_small_shift = T)
   

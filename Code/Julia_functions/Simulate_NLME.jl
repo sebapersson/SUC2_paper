@@ -135,7 +135,6 @@ function solve_dde_system(model, t_span, param_model, tau)
     dde_solution = solve(dde_problem, alg, verbose = false)
 
     if dde_solution.retcode != success_symbol
-        @printf("Failed solving dde system\n")
         return "exit"
     else
         return dde_solution
