@@ -1,5 +1,21 @@
  #!/bin/bash
 
+# This script will reproduce all the modeling results presented
+# in the paper.
+# Firstly it will process the raw data into csv tidy data and plot the data set.
+# Secondly, it will perform the STS optimisation and provide 
+# instructions for the Monolix optimisation.
+# Thirdly, given estimated parameters this script will call the processing
+# functions, which will produce model diagnostic plots and tables.
+# Fourthly, other plots, like the experimental invertase data, is plotted. 
+
+# Usage: This script will always carry out all the analysis. It should
+# be run from the Code-directory. It will exit if this is not the case.
+# NOTE, the user should in the run_julia-function provide the path to
+# the Julia executeble. 
+# NOTE, the STS-optimization and simulation of cells is quite time-consuming.
+# Hence, it might take up to eight hours to run this script. 
+
 # -------------------------------------------------------------------------
 # Start of functions 
 # -------------------------------------------------------------------------
@@ -70,7 +86,7 @@ run_julia ()
 }
 
 # -------------------------------------------------------------------------
-# End of functions 
+# End of functions, start of run all script 
 # -------------------------------------------------------------------------
 
 # Check that the script is run from Shell directory
