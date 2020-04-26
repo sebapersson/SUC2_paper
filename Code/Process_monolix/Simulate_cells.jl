@@ -60,7 +60,7 @@ elseif model_use == "snf1_feedback_d"
     model_list = [snf1_feedback_model, snf1_feedback_d_snf1_x_model,
         snf1_feedback_d_x_model, snf1_feedback_d_snf1_model,
         snf1_feedback_small_switch_model]
-    tag_list = ["_wt", "_dsnf1_x", "_dx", "_dsnf1", "small_switch"]
+    tag_list = ["_wt", "_dsnf1_x", "_dx", "_dsnf1", "_small_switch"]
 
     for i in 1:length(model_list)
         model_info = ModelInfo(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"],
