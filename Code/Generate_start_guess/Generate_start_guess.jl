@@ -42,7 +42,7 @@ if model_use == "simple_feedback"
     # k1 is perturbed 5 +/- 9.8 / 2, tau 112 +/- 40 and SUC2 3.82 +/- 0.5.
     perturb_vec = [9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 80, 0.5]
     start_guess = StartGuess([5, 5, 5, 5, 5, 5, 5], [112], [3.82], [0.5],
-        ["k1", "k3", "k5", "k6", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
+        ["k1", "k3", "k4", "k5", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
     generate_start_guess(state_info, start_guess, perturb_vec,
         simple_feedback_model, times_run=times_run, alg_choose=alg_use)
 

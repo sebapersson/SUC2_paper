@@ -37,9 +37,9 @@ alg_use = parse(Int64, ARGS[2])
 if model_use == "simple_feedback"
     @printf("Simple feedback model STS\n")
     state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], [1.0, "u1", 0.0])
-    start_guess = StartGuess([0.027, 10.66, 0.22, 10.93, 1.35, 6.29, 5.35],
+    start_guess = StartGuess([0.027, 0.22, 10.66, 1.35, 6.28, 5.35, 10.93],
         [183.8], [4.05], [2.0],
-        ["k1", "k3", "k5", "k6", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
+        ["k1", "k3", "k4", "k5", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
     perform_STS(state_info, start_guess, simple_feedback_model,
         alg_use=alg_use)
 else

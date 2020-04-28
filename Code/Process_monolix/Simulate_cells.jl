@@ -36,12 +36,12 @@ if model_use == "simple_feedback"
 
     # Simlation parameters
     result_dir = "../Monolix_code/Simple_feedback/Simple_feedback/"
-    model_info = ModelInfo(["Mig1", "SUC2", "X"],
+    model_info = ModelInfo(["SNF1p", "SUC2", "X"],
         [1.0, "u1", 0.0], 3, simple_feedback_model_fixed_nlme)
     tau_m = 32
 
     simulate_cells_nlme(result_dir, n_cells_simulate, tau_m, model_info,
-        fixed=["k7_pop", "k9_pop"])
+        fixed=["k5_pop", "k8_pop"])
 elseif model_use == "snf1_feedback"
     @printf("Snf1 feedback model\n")
 

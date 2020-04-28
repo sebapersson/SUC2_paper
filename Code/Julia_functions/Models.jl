@@ -14,16 +14,16 @@
 #  t, the time
 function simple_feedback_model(du, u, h, p, t)
 
-    k1, k3, k5, k6, k7, k8, k9, tau1, tau2, Mig10, SUC20, X0  = p
+    k1, k3, k4, k5, k7, k8, k9, tau1, tau2, SNF1p0, SUC20, X0  = p
 
     # The time-dealys, tau1 = 32 min
-    hist_Mig1 = h(p, t - tau1)[1]
+    hist_SNF1p = h(p, t - tau1)[1]
     hist_X = h(p, t - tau2)[3]
 
     # For making the reading easier
-    Mig1, SUC2, X = u[1], u[2], u[3]
+    SNF1p, SUC2, X = u[1], u[2], u[3]
 
-    # To emulate the glucose cut
+    # Capturing the external glucose shift
     if t < 0.0483
        rate_in = k1
        HX = 0
@@ -32,14 +32,14 @@ function simple_feedback_model(du, u, h, p, t)
        rate_in = k1 / 40
     end
 
-    # Relationships from assuming steady state
-    k4 = k3 / ((k7 + Mig10*Mig10) * SUC20)
-    k2 = k1 / Mig10
+    # Equations derived from assuming a steady state
+    k6 = k4 / ((k5 + SNF1p0*SNF1p0) * SUC20)
+    k2 = k1 / SNF1p0
 
-    # The dynamics
-    du[1] = rate_in - k2*Mig1 + k5 * hist_X
-    du[2] = k3 / (k7 + hist_Mig1^2) - k4 * SUC2
-    du[3] = HX * k8 / (k9 + Mig1) - k6 * X
+    # Dynamics, tax_X = tau-feedback
+    du[1] = rate_in - k2*SNF1p + k3 * hist_X
+    du[2] = k4 / (k5 + hist_SNF1p^2) - k6 * SUC2
+    du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
 end
 
 
@@ -53,36 +53,36 @@ end
 #  t, the time
 function simple_feedback_model_fixed_nlme(du, u, h, p, t)
 
-    k1, k3, k5, k6, k8, tau1, tau2, Mig10, SUC20, X0  = p
+   k1, k3, k4, k7, k9, tau1, tau2, SNF1p0, SUC20, X0  = p
 
-    # The time-dealys, tau1 = 32 min
-    hist_Mig1 = h(p, t - tau1)[1]
-    hist_X = h(p, t - tau2)[3]
+   # The time-dealys, tau1 = 32 min
+   hist_SNF1p = h(p, t - tau1)[1]
+   hist_X = h(p, t - tau2)[3]
 
-    # For making the reading easier
-    Mig1, SUC2, X = u[1], u[2], u[3]
+   # For making the reading easier
+   SNF1p, SUC2, X = u[1], u[2], u[3]
 
-    # To emulate the glucose cut
-    if t < 0.0483
-       rate_in = k1
-       HX = 0
-    else
-       HX = 1
-       rate_in = k1 / 40
-    end
+   # Capturing the external glucose shift
+   if t < 0.0483
+      rate_in = k1
+      HX = 0
+   else
+      HX = 1
+      rate_in = k1 / 40
+   end
 
-    # Fixed parameters
-    k7 = 0.65911102273653
-    k9 = 14.1641123428758
+   # Fixed parameters
+   k5 = 0.681642249565471
+   k8 = 12.8394853571616
 
-    # Relationships from assuming steady state
-    k4 = k3 / ((k7 + Mig10*Mig10) * SUC20)
-    k2 = k1 / Mig10
+   # Equations derived from assuming a steady state
+   k6 = k4 / ((k5 + SNF1p0*SNF1p0) * SUC20)
+   k2 = k1 / SNF1p0
 
-    # The dynamics
-    du[1] = rate_in - k2*Mig1 + k5 * hist_X
-    du[2] = k3 / (k7 + hist_Mig1^2) - k4 * SUC2
-    du[3] = HX * k8 / (k9 + Mig1) - k6 * X
+   # Dynamics, tax_X = tau-feedback
+   du[1] = rate_in - k2*SNF1p + k3 * hist_X
+   du[2] = k4 / (k5 + hist_SNF1p^2) - k6 * SUC2
+   du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
 end
 
 

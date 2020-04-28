@@ -6,16 +6,16 @@ Variables:
 - SUC2, the SUC2 promoter activity measured via YFP 
 
  [LONGITUDINAL]
-input = {k1, k3, k5, k6, k7,k8, k9, SUC20, tau_X}
+input = {k1, k3, k4, k5, k7, k8, k9, SUC20, tau_X}
 
 EQUATION:
 ; Initial conditions 
+SNF1p0 = 1
 t0 = 0
-Mig1_0 = 1
+SNF1p_0 = 1
 SUC2_0 = SUC20
 X_0 = 0
 tau_SUC2 = 32
-Mig10 = 1
 
 ; Capturing the external glucose shift 
 if t < 0.0483
@@ -27,13 +27,13 @@ else
 end
 
 ; Equations derived from assuming a steady state 
-k4 = k3 / ((k7 + Mig10*Mig10) * SUC20)
-k2 = k1 / Mig10
+k6 = k4 / ((k5 + SNF1p0*SNF1p0) * SUC20)
+k2 = k1 / SNF1p0
 
 ; Dynamics, tax_X = tau-feedback 
-ddt_Mig1 = rate_in - k2*Mig1 + k5 * delay(X, tau_X)
-ddt_SUC2 = k3 / (k7 + delay(Mig1, tau_SUC2)^2) - k4 * SUC2  
-ddt_X = HX * k8 / (k9 + Mig1) - k6 * X
+ddt_SNF1p = rate_in - k2*SNF1p + k3 * delay(X, tau_X)
+ddt_SUC2 = k4 / (k5 + delay(SNF1p, tau_SUC2)^2) - k6 * SUC2  
+ddt_X = HX * k7 / (k8 + SNF1p) - k9 * X
 
 OUTPUT:
 output = {SUC2}
