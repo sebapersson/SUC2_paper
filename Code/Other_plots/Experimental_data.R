@@ -30,13 +30,13 @@ process_invertase_data <- function()
                         sd = c(24.76474, 94.90088, 4.324993), 
                         type = as.factor(c("wt", "dreg1", "dreg1dsnf1")), 
                         glc = as.factor(c("low", "low", "low"))) %>%
-  mutate(frame = c(0, 0, max(value) + 94))
+  mutate(frame = c(0, 0, 850))
   
   data_high <- tibble(value = c(158.1396, 714.0953, 33.55298, 31.47122), 
                       sd = c(24.76474, 8.004206629, 19.09195, 8.117907953), 
                       type = as.factor(c("wt", "wt", "dsnf1", "dsnf1")), 
                       glc = as.factor(c("high", "low", "high", "low"))) %>%
-    mutate(frame = c(0, 0, max(value), 0))
+    mutate(frame = c(0, 0, 850, 0))
     
   p1 <- ggplot(data_values_low, aes(type, value)) + 
     geom_bar(stat='identity', position='dodge', color ="black", fill = my_colors[6]) +
@@ -45,6 +45,7 @@ process_invertase_data <- function()
                      labels = c("wt", "reg1", "reg1_snf1")) +
     geom_rangeframe(aes(type, frame), sides = "l") + 
     labs(y = "Invertase activity [mU/mg]", x = "") + 
+    ylim(0, 850) + 
     my_theme + theme(legend.position = "none", 
                      axis.title.x = element_blank(), 
                      axis.text.x = element_blank())
@@ -57,6 +58,7 @@ process_invertase_data <- function()
     geom_rangeframe(aes(type, frame), sides = "l") + 
     labs(y = "Invertase activity [mU/mg]", x = "") + 
     scale_fill_manual(values = my_colors[c(1, 6)]) + 
+    ylim(0, 850) + 
     my_theme + theme(legend.position = "none", 
                      axis.title.x = element_blank(), 
                      axis.text.x = element_blank())
