@@ -221,6 +221,6 @@ dir_save <- "../../Result/STS/Simple_feedback/"
 if(!dir.exists(path_to_result)) return(1)
 r1 <- plot_simulated_data(path_to_result, dir_save)
 r2 <- plot_IPRED(path_to_result, dir_save)
-r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k4")
+r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k3")
 
 if(r1 + r2 + r3 != 0) return(1)

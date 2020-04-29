@@ -666,7 +666,7 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
 
 path_to_result <- "../Monolix_code/Simple_feedback/Simple_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback", 
-                       param_save = "k4", plot_dist_tau_x = T)
+                       param_save = "k3", plot_dist_tau_x = T)
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
