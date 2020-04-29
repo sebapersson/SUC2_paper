@@ -121,7 +121,9 @@ check_return_code $? "Generating start guess"
 # Run the STS optimisation
 cd ../STS
 echo "Running STS"
-run_julia "Perform_STS.jl" "simple_feedback" "3"
+#run_julia "Perform_STS.jl" "simple_feedback" "3"
+#check_return_code $? "Doing STS"
+run_julia "Perform_STS.jl" "simple_feedback_fixed" "3"
 check_return_code $? "Doing STS"
 
 # Process the STS result 
@@ -161,6 +163,8 @@ check_return_code $? "Processing monolix result"
 
 # Add the processing of the graphs in the paper 
 cd ../Other_plots
+echo ""
+echo "Plotting experimental data"
 Rscript Sigmoid_function.R 2> /dev/null
 check_return_code $? "Plotting sigmoid"
 Rscript Experimental_data.R 2> /dev/null

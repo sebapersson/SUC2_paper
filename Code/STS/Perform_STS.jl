@@ -42,6 +42,14 @@ if model_use == "simple_feedback"
         ["k1", "k3", "k4", "k5", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
     perform_STS(state_info, start_guess, simple_feedback_model,
         alg_use=alg_use)
+elseif model_use == "simple_feedback_fixed"
+    @printf("Simple feedback fixed parameter STS\n")
+    state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], [1.0, "u1", 0.0])
+    start_guess = StartGuess([0.027, 0.22, 10.66, 6.28, 10.93],
+        [183.8], [4.05], [2.0],
+        ["k1", "k3", "k4", "k7", "k9", "tau2", "SUC20", "a1"])
+    perform_STS(state_info, start_guess, simple_feedback_model_fixed_sts,
+        alg_use=alg_use)
 else
     @printf("Error: Model provided does not exist\n")
     exit(1)

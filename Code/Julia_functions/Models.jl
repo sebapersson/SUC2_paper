@@ -43,8 +43,8 @@ function simple_feedback_model(du, u, h, p, t)
 end
 
 
-# The simple three state feedback model where k7 and k9 are kept fixed
-# when simulated. Note, k7 and k9 must be added manually
+# The simple three state feedback model where k5 and k8 are kept fixed
+# when simulated. Note, k5 and k8 must be added manually
 # Args:
 #  du, the derivates (act as output)
 #  u, the model states
@@ -74,6 +74,49 @@ function simple_feedback_model_fixed_nlme(du, u, h, p, t)
    # Fixed parameters
    k5 = 0.681642249565471
    k8 = 12.8394853571616
+
+   # Equations derived from assuming a steady state
+   k6 = k4 / ((k5 + SNF1p0*SNF1p0) * SUC20)
+   k2 = k1 / SNF1p0
+
+   # Dynamics, tax_X = tau-feedback
+   du[1] = rate_in - k2*SNF1p + k3 * hist_X
+   du[2] = k4 / (k5 + hist_SNF1p^2) - k6 * SUC2
+   du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
+end
+
+
+# The simple three state feedback model where k5 and k8 are kept fixed
+# for the STS estimation
+# Args:
+#  du, the derivates (act as output)
+#  u, the model states
+#  h, the time-delay function
+#  p, the model paraemters
+#  t, the time
+function simple_feedback_model_fixed_sts(du, u, h, p, t)
+
+   k1, k3, k4, k7, k9, tau1, tau2, SNF1p0, SUC20, X0  = p
+
+   # The time-dealys, tau1 = 32 min
+   hist_SNF1p = h(p, t - tau1)[1]
+   hist_X = h(p, t - tau2)[3]
+
+   # For making the reading easier
+   SNF1p, SUC2, X = u[1], u[2], u[3]
+
+   # Capturing the external glucose shift
+   if t < 0.0483
+      rate_in = k1
+      HX = 0
+   else
+      HX = 1
+      rate_in = k1 / 40
+   end
+
+   # Fixed parameters
+   k5 = exp(-1.82839798133916)
+   k8 = exp(1.79366126930325)
 
    # Equations derived from assuming a steady state
    k6 = k4 / ((k5 + SNF1p0*SNF1p0) * SUC20)
