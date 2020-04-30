@@ -1,6 +1,6 @@
 # About 
 
-This directory contains the data files that make out the foundation of all analysis in the project. Note that each data file should be in a **read only** format. **Note**, upon cloning the project the data (description below) is not in this directory, but it can be retrieved from [ADD]. 
+This directory contains the data files that make out the foundation of all analysis in the project. Note that each data file should be in a **read only** format. **Note**, upon cloning the project the data (description below) is not in this directory, but it can be retrieved from (here)[https://figshare.com/s/d846d38177821c3a2c4e]. **Note**, the data must be placed in this directory for the code (Run_all-script) to work. 
 
 ## Data files 
 

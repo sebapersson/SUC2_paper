@@ -14,7 +14,7 @@ To fully replicate the result presented in the manuscript the requirements in th
 
 Each directory contains a README.md describing the role of that directory. These roles can be summarised as:
 
-* **Data**: Contains the original SUC2 data in CSV-format. Upon cloning the project the data is not in the folder, but it can be retreived from [ADD].
+* **Data**: Contains the original SUC2 data in CSV-format. Upon cloning the project the data is not in the folder, but it can be retreived from [here](https://figshare.com/s/d846d38177821c3a2c4e). **Note**, the data must be placed in Data directory for the code (Run_all-script) to work. 
 * **Intermediate**: Contains intermediate which files are produced by the analysis. Files here are not counted as results, but are required for producing the figures and tables in the result directory. 
 * **Code**: Contains the code for processing the data, running STS and NLME, and plotting the end result. The Monolix files, e.g mlxtran-files, are also located here. 
 * **Result**: Contains, after running *Run_all.sh*, the figures presented in the manuscript. It also contains tables with estimated parameter values for the NLME and STS approaches. 
