@@ -43,6 +43,59 @@ function simple_feedback_model(du, u, h, p, t)
 end
 
 
+# Function that will map the rate-constants to the initial values
+# for the simple-feedback models
+# Args:
+#  rate_constants, the rate-constants for the model
+#  n_states, a vector with the number of states
+# Returns:
+#  A vector with initial values
+function map_init_simple_feedback_v2(rate_constants)
+   init_vec = zeros(Float64, 3)
+   k1, k2, k3, k4, k5, k6, k7, k8, k9 = rate_constants
+   init_vec[1] = k1 / k2
+   init_vec[2] = k4 / ((k5 + init_vec[1])*k6)
+   init_vec[3] = 0.0
+
+   return init_vec
+end
+
+
+# The simple three state feedback model.
+# Args:
+#  du, the derivates (act as output)
+#  u, the model states
+#  h, the time-delay function
+#  p, the model paraemters
+#  t, the time
+function simple_feedback_model_v2(du, u, h, p, t)
+
+    k1, k2, k3, k4, k5, k6, k7, k8, k9, tau1, tau2, SNF1p0, SUC20, X0  = p
+
+    # The time-dealys, tau1 = 32 min
+    hist_SNF1p = h(p, t - tau1)[1]
+    hist_X = h(p, t - tau2)[3]
+
+    # For making the reading easier
+    SNF1p, SUC2, X = u[1], u[2], u[3]
+
+    # Glucose downshift
+    if t < 0.0483
+       rate_in = k1
+       HX = 0
+    else
+       HX = 1
+       rate_in = k1 / 40
+    end
+
+    # Dynamics, feedback cascade model
+    du[1] = rate_in - k2*SNF1p + k3 * hist_X
+    du[2] = k4 / (k5 + hist_SNF1p) - k6 * SUC2
+    du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
+
+end
+
+
 # The simple three state feedback model where k5 and k8 are kept fixed
 # when simulated. Note, k5 and k8 must be added manually
 # Args:

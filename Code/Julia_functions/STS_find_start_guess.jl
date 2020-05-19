@@ -94,9 +94,11 @@ end
 #   param_model, the model parameters
 #   opt_vector, the current value of the opt-vector (is updated)
 #   param_info, the parameter info
+#   param_rates, function describing relationship between rates and init-val
 # Returns
 #   param_model, an updated model parameter vector
-function map_opt_vec_to_model(param_model, opt_vector, param_info)
+function map_opt_vec_to_model(param_model, opt_vector, param_info;
+    map_init_rates=empty)
 
     n_delays = param_info.n_delays
     n_rates = param_info.n_rate_constants
@@ -115,6 +117,10 @@ function map_opt_vec_to_model(param_model, opt_vector, param_info)
         param_model.initial_values[map_init_opt_vector] =
             opt_vector[(n_rates+n_delays+1):end-1]
         param_model.delays = opt_vector[n_rates+1:n_rates+n_delays]
+    end
+
+    if map_init_rates != empty
+        param_model.initial_values = map_init_rates(param_model.rate_constants)
     end
 
     return param_model
@@ -185,13 +191,14 @@ end
 
 
 function target_function(opt_vector, grad, param_info, state_info,
-    SUC2_data, param_model, model)
+    SUC2_data, param_model, model; map_init_rates=empty)
 
     if length(grad) > 0
         @printf("Cannot calculate gradient\n")
     end
 
-    param_model = map_opt_vec_to_model(param_model, opt_vector, param_info)
+    param_model = map_opt_vec_to_model(param_model, opt_vector, param_info,
+        map_init_rates=map_init_rates)
     dde_sol = solve_dde_system(model, param_model, param_info)
     if dde_sol == "exit"
         return 1e8
@@ -265,6 +272,8 @@ function create_param_obj(start_guess, state_info; tau=32.0, time_span=(0.0, 500
     for (init_info, i) = zip(state_info.init_status, 1:n_init_values)
         if isa(init_info, Float64) || isa(init_info, Int64)
             init_val[i] = convert(Float64, init_info)
+        elseif init_info == "m"
+            init_val[i] = 0.0
         elseif init_info[1] == 'u'
             if length(init_info) == 1
                 @printf("Error: Wrong format on provided initial values\n")
@@ -595,9 +604,11 @@ end
 #   perturb_vec, vector saying how much a vector is going to be perturbed
 # Returns
 #   param_start, opt_vec, param_info
-function generate_rand_start_guess(start_guess, state_info, perturb_vec)
+function generate_rand_start_guess(start_guess, state_info, perturb_vec;
+    map_init_rates=empty)
 
     param_start, param_info, opt_vec = create_param_obj(start_guess, state_info)
+    opt_vec = convert(Array{Float64}, opt_vec)
     # Sanity check input
     if length(perturb_vec) != length(opt_vec)-1
         @printf("Error: Perturb vec has a length not matching opt-vec\n")
@@ -610,6 +621,9 @@ function generate_rand_start_guess(start_guess, state_info, perturb_vec)
         opt_vec[i] += (rand_vec[i]-0.5) * perturb_vec[i]
     end
     param_start = map_opt_vec_to_model(param_start, opt_vec, param_info)
+    if map_init_rates != empty
+        param_start.initial_values = map_init_rates(param_start.rate_constants)
+    end
 
     return param_start, param_info, opt_vec
 end
@@ -628,13 +642,13 @@ end
 # Returns:
 #   best_start_guess, the best start guess
 function generate_start_guess(state_info, start_guess, perturb_vec, model;
-    alg_choose=3, times_run=100)
+    alg_choose=3, times_run=100, map_init_rates=empty)
 
     Random.seed!(123)
     # Read data
     path_data = "../../Intermediate/Data_files/Data_mean_SUC2.csv"
     data = CSV.read(path_data)
-    best_cost = 2000
+    best_cost = 20000
 
     # The optmisation details
     alg_list = [:LN_NELDERMEAD, :LN_SBPLX, :LN_BOBYQA]
@@ -645,8 +659,14 @@ function generate_start_guess(state_info, start_guess, perturb_vec, model;
     @showprogress 1 "Finding start guess ..." for i in 1:times_run
         # Generate the random start guess
         param_start, param_info, opt_vec = generate_rand_start_guess(start_guess,
-            state_info, perturb_vec)
+            state_info, perturb_vec, map_init_rates=map_init_rates)
         n_param = length(opt_vec)
+
+        # Try solve the initial optimisation problem
+        dde_sol = solve_dde_system(model, param_start, param_info)
+        if dde_sol == "exit"
+            continue
+        end
 
         # Solve the optmisation problem
         opt = Opt(alg_opt, n_param)
@@ -655,7 +675,8 @@ function generate_start_guess(state_info, start_guess, perturb_vec, model;
         opt.maxeval = 1000
 
         min_objective!(opt, (opt_vector, grad) -> target_function(opt_vector, grad,
-            param_info, state_info, data, param_start, model))
+            param_info, state_info, data, param_start, model,
+            map_init_rates=map_init_rates))
         (minf, minx, ret) = optimize(opt, opt_vec)
         param_final = map_opt_vec_to_model(param_start, minx, param_info)
 

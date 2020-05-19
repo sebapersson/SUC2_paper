@@ -46,6 +46,22 @@ if model_use == "simple_feedback"
     generate_start_guess(state_info, start_guess, perturb_vec,
         simple_feedback_model, times_run=times_run, alg_choose=alg_use)
 
+elseif model_use == "simple_feedback_v2"
+
+    @printf("\nSimple feedback model version 2\n")
+    # Simple feedback model v2
+    # For creating the state info object
+    state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"],
+        ["m", "m", "m"])
+    # A parameter is perturbed +/- half what is in perturb_vec vector, so here
+    # k1 is perturbed 5 +/- 9.8 / 2, tau 112 +/- 40 and SUC2 3.82 +/- 0.5.
+    perturb_vec = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 80]
+    start_guess = StartGuess([1, 1, 1, 1, 1, 1, 1, 1, 1], [112], [], [0.5],
+        ["k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9", "tau2", "a1"])
+    generate_start_guess(state_info, start_guess, perturb_vec,
+        simple_feedback_model_v2, times_run=times_run, alg_choose=alg_use,
+        map_init_rates=map_init_simple_feedback_v2)
+
 elseif model_use == "snf1_feedback"
     @printf("SNF1 feedback model\n")
     state_info = produce_state_info(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"], ["SUC2"], [0.0, 1.0, 0.0, "u1", 0.0])
@@ -54,7 +70,6 @@ elseif model_use == "snf1_feedback"
         ["k1", "k3", "k4", "k5", "k6", "k8", "k9", "SUC20", "a1"])
     generate_start_guess(state_info, start_guess, perturb_vec,
         snf1_feedback_model, times_run=times_run, alg_choose=alg_use)
-
 else
 
     @printf("Error: Model provided does not exist\n")
