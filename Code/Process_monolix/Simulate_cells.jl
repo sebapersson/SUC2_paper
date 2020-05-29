@@ -30,28 +30,35 @@ end
 model_use = ARGS[1]
 n_cells_simulate = parse(Int64, ARGS[2])
 
+
+model_use = snf1_feedback_model_v2
+n_cells_simulate = 10000
+
+
+
+
 # u1, see documentation functions, note using relative paths
 if model_use == "simple_feedback"
     @printf("Simple feedback model\n")
-
-    # Simlation parameters
+    # Simulation parameters
     result_dir = "../Monolix_code/Simple_feedback/Simple_feedback/"
     model_info = ModelInfo(["SNF1p", "SUC2", "X"],
-        [1.0, "u1", 0.0], 3, simple_feedback_model_fixed_nlme)
+        ["m", "m", "m"], 3, simple_feedback_model_v2_nlme)
     tau_m = 32
 
     simulate_cells_nlme(result_dir, n_cells_simulate, tau_m, model_info,
-        fixed=["k5_pop", "k8_pop"])
+        map_init_rates=map_init_simple_feedback_nlme, fixed=["k5_pop", "k8_pop"])
 elseif model_use == "snf1_feedback"
     @printf("Snf1 feedback model\n")
 
     # Simulation parameters
     result_dir = "../Monolix_code/Snf1_feedback/Snf1_feedback/"
     model_info = ModelInfo(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"],
-        [0.0, 1.0, 0.0, "u1", 0.0], 5, snf1_feedback_model)
+        ["m", "m", "m", "m", "m"], 5, snf1_feedback_model)
     tau_m = 32
 
-    simulate_cells_nlme(result_dir, n_cells_simulate, tau_m, model_info)
+    simulate_cells_nlme(result_dir, n_cells_simulate, tau_m, model_info,
+        map_init_rates=map_init_snf1_feedback)
 elseif model_use == "snf1_feedback_d"
     @printf("Deletion experiments Snf1 feedback model\n")
 
@@ -66,7 +73,8 @@ elseif model_use == "snf1_feedback_d"
         model_info = ModelInfo(["SNF1p", "Mig1", "Mig1p", "SUC2", "X"],
             [0.0, 1.0, 0.0, "u1", 0.0], 5, model_list[i])
         simulate_cells_nlme(result_dir, n_cells_simulate, 32.0,
-            model_info, tag=tag_list[i])
+            model_info, tag=tag_list[i],
+            map_init_rates=map_init_snf1_feedback)
     end
 else
     @printf("Error: Model provided does not exist\n")

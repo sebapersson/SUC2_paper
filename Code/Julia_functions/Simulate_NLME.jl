@@ -83,9 +83,15 @@ end
 #   param_ind, a parameter vector for an individual (column param_matrix)
 #   i_init, the indices for the initial values in param_matrix
 #   model_info, the model info object
+#   map_init_rates, mapping initial values as functions of rate-constants
 # Returns
 #   init_vector, an init vector that can be added to ParameterInfo object
-function map_initial_values(param_ind, i_init, model_info)
+function map_initial_values(param_ind, i_init, model_info; map_init_rates=empty)
+
+    if map_init_rates != empty
+        init_val = map_init_rates(param_ind)
+        return init_val
+    end
 
     init_unknown = param_ind[i_init]
     init_val = zeros(model_info.n_states)
@@ -155,8 +161,8 @@ end
 # Returns:
 #   0 upon succes
 function simulate_cells_nlme(result_dir, n_cells_simulate,
-    tau, model_info; tag="", fixed=[], time_span=(0.0, 500.0))
-
+    tau, model_info; tag="", fixed=[], time_span=(0.0, 500.0),
+    map_init_rates=empty)
 
     path_cov = result_dir * "Cov_mat.csv"
     path_pop_effects = result_dir * "populationParameters.txt"
@@ -195,7 +201,8 @@ function simulate_cells_nlme(result_dir, n_cells_simulate,
     @showprogress 1 "Simulating cells ... " for i in 1:n_cells_simulate
         # Operations for individual cells
         param_test = param_matrix[:, i]
-        init_val = map_initial_values(param_test, i_init, model_info)
+        init_val = map_initial_values(param_test, i_init, model_info,
+            map_init_rates=map_init_rates)
         param_ind = ParameterValues(param_test[i_rates], init_val, param_test[i_delays])
         dde_sol = solve_dde_system(model_info.model_name, time_span, param_ind, tau)
         if dde_sol == "exit"
