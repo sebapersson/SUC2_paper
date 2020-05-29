@@ -97,7 +97,7 @@ end
 #   param_rates, function describing relationship between rates and init-val
 # Returns
 #   param_model, an updated model parameter vector
-function map_opt_vec_to_model(param_model, opt_vector, param_info;
+function map_opt_vec_to_model(param_model, opt_vector::Array{Float64, 1}, param_info;
     map_init_rates=empty)
 
     n_delays = param_info.n_delays
@@ -109,21 +109,25 @@ function map_opt_vec_to_model(param_model, opt_vector, param_info;
     param_model.rate_constants = opt_vector[1:n_rates]
     param_model.noise = opt_vector[end]
 
+    # The case with dealys and mapping of initial values
+    if param_model.delays != empty && map_init_rates != empty
+        param_model.delays = opt_vector[n_rates+1:n_rates+n_delays]
+        param_model.initial_values = map_init_rates(param_model.rate_constants)
+        return param_model
+    end
+
     # Mapping unknown initial initial_values and potential delays
     if param_model.delays == empty
         param_model.initial_values[map_init_opt_vector] =
             opt_vector[n_rates+1:end-1]
+        return param_model
     else
         param_model.initial_values[map_init_opt_vector] =
             opt_vector[(n_rates+n_delays+1):end-1]
         param_model.delays = opt_vector[n_rates+1:n_rates+n_delays]
+        return param_model
     end
 
-    if map_init_rates != empty
-        param_model.initial_values = map_init_rates(param_model.rate_constants)
-    end
-
-    return param_model
 end
 
 
@@ -191,7 +195,7 @@ end
 
 
 function target_function(opt_vector, grad, param_info, state_info,
-    SUC2_data, param_model, model; map_init_rates=empty)
+    SUC2_data, param_model, model, map_init_rates)
 
     if length(grad) > 0
         @printf("Cannot calculate gradient\n")
@@ -310,6 +314,7 @@ function create_param_obj(start_guess, state_info; tau=32.0, time_span=(0.0, 500
             start_guess.init_values, start_guess.noise)
     end
 
+    opt_vec = convert(Array{Float64}, opt_vec)
     return param_values, param_info, opt_vec
 end
 
@@ -382,7 +387,8 @@ end
 #   opt_mat, a matrix where each row is the parameters for a cell
 #   param_start, a parameter-val object that has all the constant
 #       values correct.
-function estimate_ind_param(dir_save, state_info, start_guess, model, alg_opt)
+function estimate_ind_param(dir_save, state_info, start_guess, model, alg_opt;
+    map_init=empty)
 
     # Extract time and observed values for an individual into array
     path_data = "../../Intermediate/Data_files/Data_monolix_SUC2.csv"
@@ -415,9 +421,11 @@ function estimate_ind_param(dir_save, state_info, start_guess, model, alg_opt)
         opt.maxeval = 10000
 
         min_objective!(opt, (opt_vector, grad) -> target_function(opt_vector, grad,
-            param_info, state_info, data_ind, param_start, model))
+            param_info, state_info, data_ind, param_start, model,
+            map_init))
         (minf, minx, ret) = optimize(opt, opt_vec)
-        param_final = map_opt_vec_to_model(param_start, minx, param_info)
+        param_final = map_opt_vec_to_model(param_start, minx, param_info,
+            map_init_rates=map_init)
 
         # Map the parameter values
         opt_mat[i, 2:end] = minx
@@ -495,7 +503,7 @@ end
 # Returns
 #   Error if covaraince matrix not positive definite
 function simulate_cells(pop_param, cov_mat, param_start, param_info, model,
-    state_info, dir_save; n_cells_simulate=10000)
+    state_info, dir_save; n_cells_simulate=10000, map_init=empty)
 
     if !isposdef(cov_mat)
         @printf("Error: Estimated covariance matrix is not positive definite\n")
@@ -517,7 +525,8 @@ function simulate_cells(pop_param, cov_mat, param_start, param_info, model,
     @showprogress 1 "Simulating cells ... " for i in 1:n_cells_simulate
         # Note, add noise to use the same struct as for parmeter estimation
         param_cell = vcat(param_cells[i, :], 1.0)
-        param_vec = map_opt_vec_to_model(param_start, param_cell, param_info)
+        param_vec = map_opt_vec_to_model(param_start, param_cell, param_info,
+            map_init_rates=map_init)
         dde_sol = solve_dde_system(model, param_vec, param_info)
 
         # Add interpolated soluton
@@ -556,7 +565,7 @@ end
 #       3 = LN_BOBYQA
 # Returns:
 #   void
-function perform_STS(state_info, start_guess, model; alg_use=1)
+function perform_STS(state_info, start_guess, model; alg_use=1, map_init=empty)
 
     # Sanity check the start guess input
     len_input = length(start_guess.init_values) + length(start_guess.delays) +
@@ -580,12 +589,12 @@ function perform_STS(state_info, start_guess, model; alg_use=1)
     if !isdir(dir_save) mkdir(dir_save) end
 
     opt_mat, param_start, param_info = estimate_ind_param(dir_save, state_info,
-        start_guess, model, alg_list[alg_use])
+        start_guess, model, alg_list[alg_use], map_init=map_init)
 
     pop_param, cov_mat = ml_est_cov_and_mean(dir_save, start_guess, opt_mat)
 
     simulate_cells(pop_param, cov_mat, param_start, param_info, model,
-        state_info, dir_save)
+        state_info, dir_save, map_init=map_init)
 
     return pop_param, cov_mat, param_start, param_info
 end
@@ -676,7 +685,7 @@ function generate_start_guess(state_info, start_guess, perturb_vec, model;
 
         min_objective!(opt, (opt_vector, grad) -> target_function(opt_vector, grad,
             param_info, state_info, data, param_start, model,
-            map_init_rates=map_init_rates))
+            map_init_rates))
         (minf, minx, ret) = optimize(opt, opt_vec)
         param_final = map_opt_vec_to_model(param_start, minx, param_info)
 
