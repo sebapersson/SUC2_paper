@@ -65,7 +65,7 @@ plot_monolix_data <- function(path_data, seed)
     geom_line(data_sum, mapping=aes(time, quant95), 
               linetype = 2, size = 1.5) +
     geom_line(data_sum, mapping=aes(time, median), size = 1.5, linetype = 2) +
-    labs(x = "Time [min]", y = TeX("SUC2 intensity \\[A.U.$\\times 10^{-2}$\\]")) +
+    labs(x = "Time [min]", y = TeX("YFP intensity \\[A.U.$\\times 10^{-2}$\\]")) +
     my_theme +
     theme(legend.position = "none")
   

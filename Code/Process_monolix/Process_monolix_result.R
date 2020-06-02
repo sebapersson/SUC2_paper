@@ -316,7 +316,7 @@ plot_individual_fit <- function(path_to_result, out_signals, out_signals_name, d
       p1 <- ggplot(data_fit_cell, aes(time, indivPredMode)) + 
         geom_line(size = 1.1, color = my_colors[1]) + 
         geom_point(data = data_obs_cell, aes(time, observed), color = "black", size = 1.6) + 
-        labs(x = "Time", y = "Suc2 intensity") + 
+        labs(x = "Time", y = "YFP intensity") + 
         geom_rangeframe() + 
         my_theme
       
@@ -462,7 +462,7 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated=F)
         geom_line(data_sum, mapping=aes(time, quant95), color = "black", size = 1.2, linetype = 2) +
         geom_line(data_sum, mapping=aes(time, quant05), color = "black", size = 1.2, linetype = 2) +
         geom_rangeframe(data=data_min_max, mapping=aes(x=x, y=y)) +
-        labs(x = "Time [min]", y = TeX("SUC2 intesity \\[A.U $\\times 10^{-2}$\\]")) + 
+        labs(x = "Time [min]", y = TeX("YFP intesity \\[A.U $\\times 10^{-2}$\\]")) + 
         my_theme
       
     }else{
@@ -570,7 +570,7 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save, plot_small_shift
                      labels = c("wt", "Δsnf1", "Δsnf1_x", "Δx")) +
     geom_rangeframe(aes(type, y_frame), sides = "l",) + 
     scale_fill_manual(values = my_blue_scale) +
-    labs(y = TeX("Simulated SUC2 intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
+    labs(y = TeX("Simulated YFP intensity \\[A.U $\\times 10^{-2}$\\]"), x = "") + 
     my_theme + theme(legend.position = "none", 
                      axis.title.x = element_blank(), 
                      axis.text.x = element_blank())
@@ -661,14 +661,14 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
 
 
 # ----------------------------------------- ------------------------------
-# Process the end monolix result 
+# Process the end monolix result  
 # -----------------------------------------------------------------------
 
 path_to_result <- "../Monolix_code/Simple_feedback/Simple_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback", 
                        param_save = "k3", plot_dist_tau_x = T)
+plot_simulated_data(path_to_result, "Test/")
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
                        plot_deletions = T, plot_small_shift = T)
-  

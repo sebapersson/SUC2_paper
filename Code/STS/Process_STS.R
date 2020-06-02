@@ -100,7 +100,7 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated = F)
         geom_line(data_sum, mapping=aes(time, quant95), color = "black", size = 1.2, linetype = 2) +
         geom_line(data_sum, mapping=aes(time, quant05), color = "black", size = 1.2, linetype = 2) +
         geom_rangeframe(data=data_min_max, mapping=aes(x=x, y=y)) +
-        labs(x = "Time [min]", y = TeX("SUC2-intensity \\[A.U $\\times 10^{-2}$\\]")) + 
+        labs(x = "Time [min]", y = TeX("YFP-intensity \\[A.U $\\times 10^{-2}$\\]")) + 
         my_theme
       
     }else{
