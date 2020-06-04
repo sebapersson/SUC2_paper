@@ -163,6 +163,7 @@ function solve_dde_system(model, param_model, param_info)
     dde_solution = solve(dde_problem, alg, verbose = false)
 
     if dde_solution.retcode != success_symbol
+        @printf("Failed solving dde-system\n")
         return "exit"
     else
         return dde_solution
@@ -388,7 +389,7 @@ end
 #   param_start, a parameter-val object that has all the constant
 #       values correct.
 function estimate_ind_param(dir_save, state_info, start_guess, model, alg_opt;
-    map_init=empty)
+    map_init=empty, log_space=false)
 
     # Extract time and observed values for an individual into array
     path_data = "../../Intermediate/Data_files/Data_monolix_SUC2.csv"
@@ -416,7 +417,12 @@ function estimate_ind_param(dir_save, state_info, start_guess, model, alg_opt;
 
         # Solve the optmisation problem
         opt = Opt(alg_opt, n_param)
-        opt.lower_bounds = 0.0
+        if log_space
+            opt.lower_bounds = -Inf
+            opt.initial_step = 0.1
+        else
+            opt.lower_bounds = 0
+        end
         opt.upper_bounds = Inf
         opt.maxeval = 10000
 
@@ -459,14 +465,20 @@ end
 # Returns:
 #   pop_param, the estimated population parameters (excluding noise)
 #   cov_mat, the estimated covariance matrix
-function ml_est_cov_and_mean(dir_save, start_guess, opt_mat)
+function ml_est_cov_and_mean(dir_save, start_guess, opt_mat; log_space=false)
 
     # Separate noise parameter from the other parameters
     opt_mat = opt_mat[:, 2:end]
     col_noise = findall(x -> x[1] == 'a', start_guess.names_opt_vec)
     n_cells = size(opt_mat)[1]
-    param_mat = log.(opt_mat[:, Not(col_noise)] .+ 1e-7)
     noise_vec = opt_mat[:, col_noise]
+
+    # Don't need log if estimating in log-space
+    if log_space
+        param_mat = opt_mat[:, Not(col_noise)]
+    else
+        param_mat = log.(opt_mat[:, Not(col_noise)] .+ 1e-9)
+    end
 
     # Calculate the population values, use likelihood for cov-mat
     pop_param = mean(param_mat, dims = 1)
@@ -503,7 +515,7 @@ end
 # Returns
 #   Error if covaraince matrix not positive definite
 function simulate_cells(pop_param, cov_mat, param_start, param_info, model,
-    state_info, dir_save; n_cells_simulate=10000, map_init=empty)
+    state_info, dir_save; n_cells_simulate=10000, map_init=empty, log_space=false)
 
     if !isposdef(cov_mat)
         @printf("Error: Estimated covariance matrix is not positive definite\n")
@@ -512,7 +524,13 @@ function simulate_cells(pop_param, cov_mat, param_start, param_info, model,
 
     # Simulate cells
     dist_mult_normal = MvNormal(vec(pop_param), cov_mat)
-    param_cells = transpose(exp.(rand(dist_mult_normal, n_cells_simulate)))
+
+    # If model accepts log-space or nog
+    if log_space
+        param_cells = transpose(rand(dist_mult_normal, n_cells_simulate))
+    else
+        param_cells = transpose(exp.(rand(dist_mult_normal, n_cells_simulate)))
+    end
 
     # Define matrix where to store the result
     time_span = param_info.time_span
@@ -565,7 +583,8 @@ end
 #       3 = LN_BOBYQA
 # Returns:
 #   void
-function perform_STS(state_info, start_guess, model; alg_use=1, map_init=empty)
+function perform_STS(state_info, start_guess, model; alg_use=1, map_init=empty,
+    log_space=false)
 
     # Sanity check the start guess input
     len_input = length(start_guess.init_values) + length(start_guess.delays) +
@@ -589,12 +608,14 @@ function perform_STS(state_info, start_guess, model; alg_use=1, map_init=empty)
     if !isdir(dir_save) mkdir(dir_save) end
 
     opt_mat, param_start, param_info = estimate_ind_param(dir_save, state_info,
-        start_guess, model, alg_list[alg_use], map_init=map_init)
+        start_guess, model, alg_list[alg_use], map_init=map_init,
+        log_space=log_space)
 
-    pop_param, cov_mat = ml_est_cov_and_mean(dir_save, start_guess, opt_mat)
+    pop_param, cov_mat = ml_est_cov_and_mean(dir_save, start_guess, opt_mat,
+        log_space=log_space)
 
     simulate_cells(pop_param, cov_mat, param_start, param_info, model,
-        state_info, dir_save, map_init=map_init)
+        state_info, dir_save, map_init=map_init, log_space=log_space)
 
     return pop_param, cov_mat, param_start, param_info
 end
