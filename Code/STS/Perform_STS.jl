@@ -34,28 +34,7 @@ end
 model_use = ARGS[1]
 alg_use = parse(Int64, ARGS[2])
 
-
 if model_use == "simple_feedback"
-    @printf("Simple feedback model STS\n")
-    state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], ["m", "m", "m"])
-    start_guess = StartGuess([0.087, 0.055, 4.83, 12.73, 2.09, 0.87, 0.62, 9.07, 5.17],
-        [218.8], [], [1.0],
-        ["k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9", "tau2", "a1"])
-
-    perform_STS(state_info, start_guess, simple_feedback_model,
-        alg_use=alg_use, map_init=map_init_simple_feedback)
-
-elseif model_use == "simple_feedback_fixed"
-    @printf("Simple feedback fixed parameter STS\n")
-    state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], ["m", "m", "m"])
-    start_guess = StartGuess([0.087, 0.055, 4.83, 12.73, 0.87, 0.62, 5.17],
-        [218.8], [], [1.0],
-        ["k1", "k2", "k3", "k4", "k6", "k7", "k9", "tau2", "a1"])
-
-    perform_STS(state_info, start_guess, simple_feedback_model_sts_fixed,
-        alg_use=alg_use, map_init=map_init_simple_feedback_sts_fixed)
-
-elseif model_use == "simple_feedback_log"
     @printf("Simple feedback model STS log space\n")
     state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], ["m", "m", "m"])
     start_guess = StartGuess(log.([0.087, 0.055, 4.83, 12.73, 2.09, 0.87, 0.62, 9.07, 5.17]),
@@ -66,7 +45,7 @@ elseif model_use == "simple_feedback_log"
         alg_use=alg_use, map_init=map_init_simple_feedback_log,
         log_space=true)
 
-elseif model_use == "simple_feedback_log_fixed"
+elseif model_use == "simple_feedback_fixed"
     @printf("Simple feedback fixed parameter log STS\n")
     state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"], ["m", "m", "m"])
     start_guess = StartGuess(log.([0.087, 0.055, 4.83, 12.73, 0.87, 0.62, 5.17]),

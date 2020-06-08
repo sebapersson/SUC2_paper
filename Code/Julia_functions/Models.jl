@@ -7,25 +7,6 @@
 
 
 # Function that will map the rate-constants to the initial values
-# for the simple-feedback model. Note, here none of the parameters
-# are assumed to be fixed
-# Args:
-#  rate_constants, the rate-constants for the model
-#  n_states, a vector with the number of states
-# Returns:
-#  A vector with initial values
-function map_init_simple_feedback(rate_constants)
-   init_vec = zeros(Float64, 3)
-   k1, k2, k3, k4, k5, k6, k7, k8, k9 = rate_constants
-   init_vec[1] = k1 / k2
-   init_vec[2] = k4 / ((k5 + init_vec[1]^1)*k6)
-   init_vec[3] = 0.0
-
-   return init_vec
-end
-
-
-# Function that will map the rate-constants to the initial values
 # for the simple-feedback model, were parameters are in the log-space.
 # Note, here none of the parameters are assumed to be fixed
 # Args:
@@ -56,26 +37,6 @@ function map_init_simple_feedback_nlme(rate_constants)
    init_vec = zeros(Float64, 3)
    k1, k2, k3, k4, k6, k7, k9 = rate_constants
    k5 = 1.8
-   init_vec[1] = k1 / k2
-   init_vec[2] = k4 / ((k5 + init_vec[1]^1)*k6)
-   init_vec[3] = 0.0
-
-   return init_vec
-end
-
-
-# Function that will map the rate-constants to the initial values
-# for the simple-feedback models. Here k5 and k8 are assumed
-# to be fixed according to the STS fit.
-# Args:
-#  rate_constants, the rate-constants for the model
-#  n_states, a vector with the number of states
-# Returns:
-#  A vector with initial values
-function map_init_simple_feedback_sts_fixed(rate_constants)
-   init_vec = zeros(Float64, 3)
-   k1, k2, k3, k4, k6, k7, k9 = rate_constants
-   k5 = exp(0.359492180179576)
    init_vec[1] = k1 / k2
    init_vec[2] = k4 / ((k5 + init_vec[1]^1)*k6)
    init_vec[3] = 0.0
@@ -179,17 +140,19 @@ function simple_feedback_model_nlme(du, u, h, p, t)
 end
 
 
-# The simple three state feedback model. Here k5 and k8 are fixed
-# according to the NLME fitted values
+# The simple three state feedback model, with parameters in log-space
 # Args:
 #  du, the derivates (act as output)
 #  u, the model states
 #  h, the time-delay function
 #  p, the model paraemters
 #  t, the time
-function simple_feedback_model_sts_fixed(du, u, h, p, t)
+function simple_feedback_model_log(du, u, h, p, t)
 
-    k1, k2, k3, k4, k6, k7, k9, tau1, tau2, SNF1p0, SUC20, X0  = p
+    lk1, lk2, lk3, lk4, lk5, lk6, lk7, lk8, lk9, tau1, ltau2, SNF1p0, SUC20, X0  = p
+    k1, k2, k3, k4, k5, k6, k7, k8, k9 =
+      exp.([lk1, lk2, lk3, lk4, lk5, lk6, lk7, lk8, lk9])
+   tau2 = exp(ltau2)
 
     # The time-dealys, tau1 = 32 min
     hist_SNF1p = h(p, t - tau1)[1]
@@ -207,14 +170,11 @@ function simple_feedback_model_sts_fixed(du, u, h, p, t)
        rate_in = k1 / 40
     end
 
-    # Fixed NLME values
-    k5 = exp(0.359492180179576)
-    k8 = exp(2.05612030434204)
-
     # Dynamics, feedback cascade model
     du[1] = rate_in - k2*SNF1p + k3 * hist_X
-    du[2] = k4 / (k5 + hist_SNF1p) - k6 * SUC2
+    du[2] = k4 / (k5 + hist_SNF1p^1) - k6 * SUC2
     du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
+
 end
 
 
@@ -257,44 +217,6 @@ function simple_feedback_model_log_fixed(du, u, h, p, t)
     du[1] = rate_in - k2*SNF1p + k3 * hist_X
     du[2] = k4 / (k5 + hist_SNF1p) - k6 * SUC2
     du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
-end
-
-
-# The simple three state feedback model, with parameters in log-space
-# Args:
-#  du, the derivates (act as output)
-#  u, the model states
-#  h, the time-delay function
-#  p, the model paraemters
-#  t, the time
-function simple_feedback_model_log(du, u, h, p, t)
-
-    lk1, lk2, lk3, lk4, lk5, lk6, lk7, lk8, lk9, tau1, ltau2, SNF1p0, SUC20, X0  = p
-    k1, k2, k3, k4, k5, k6, k7, k8, k9 =
-      exp.([lk1, lk2, lk3, lk4, lk5, lk6, lk7, lk8, lk9])
-   tau2 = exp(ltau2)
-
-    # The time-dealys, tau1 = 32 min
-    hist_SNF1p = h(p, t - tau1)[1]
-    hist_X = h(p, t - tau2)[3]
-
-    # For making the reading easier
-    SNF1p, SUC2, X = u[1], u[2], u[3]
-
-    # Glucose downshift
-    if t < 0.0483
-       rate_in = k1
-       HX = 0
-    else
-       HX = 1
-       rate_in = k1 / 40
-    end
-
-    # Dynamics, feedback cascade model
-    du[1] = rate_in - k2*SNF1p + k3 * hist_X
-    du[2] = k4 / (k5 + hist_SNF1p^1) - k6 * SUC2
-    du[3] = HX * k7 / (k8 + SNF1p) - k9 * X
-
 end
 
 

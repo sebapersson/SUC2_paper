@@ -22,6 +22,7 @@
 include("../Julia_functions/Models.jl")
 include("../Julia_functions/STS_find_start_guess.jl")
 
+
 @printf("\n")
 if length(ARGS) != 3
     @printf("Error, not the correct number of input arguments\n")
@@ -32,35 +33,21 @@ model_use = ARGS[1]
 alg_use = parse(Int64, ARGS[2])
 times_run = parse(Int64, ARGS[3])
 
-if model_use == "simple_feedback"
-    @printf("\nSimple feedback model\n")
-    # Simple feedback model
-    # For creating the state info object
-    state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"],
-        [1.0, "u1", 0.0])
-    # A parameter is perturbed +/- half what is in perturb_vec vector, so here
-    # k1 is perturbed 5 +/- 9.8 / 2, tau 112 +/- 40 and SUC2 3.82 +/- 0.5.
-    perturb_vec = [9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 80, 0.5]
-    start_guess = StartGuess([5, 5, 5, 5, 5, 5, 5], [112], [3.82], [0.5],
-        ["k1", "k3", "k4", "k5", "k7", "k8", "k9", "tau2", "SUC20", "a1"])
-    generate_start_guess(state_info, start_guess, perturb_vec,
-        simple_feedback_model, times_run=times_run, alg_choose=alg_use)
-
-elseif model_use == "simple_feedback_v2"
-
-    @printf("\nSimple feedback model version 2\n")
+if model_use == "simple_feedback_log"
+    @printf("Simple feedback model log-space start guess \n")
     # Simple feedback model v2
     # For creating the state info object
     state_info = produce_state_info(["Mig1", "SUC2", "X"], ["SUC2"],
-        ["m", "m", "m"])
+    ["m", "m", "m"])
     # A parameter is perturbed +/- half what is in perturb_vec vector, so here
     # k1 is perturbed 5 +/- 9.8 / 2, tau 112 +/- 40 and SUC2 3.82 +/- 0.5.
-    perturb_vec = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 80]
-    start_guess = StartGuess([1, 1, 1, 1, 1, 1, 1, 1, 1], [112], [], [0.5],
+    perturb_vec = log.([9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 40])
+    start_guess = StartGuess(log.([5, 5, 5, 5, 5, 5, 5, 5, 5]), [log(80)], [], [2.0],
         ["k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9", "tau2", "a1"])
-    generate_start_guess(state_info, start_guess, perturb_vec,
-        simple_feedback_model_v2, times_run=times_run, alg_choose=alg_use,
-        map_init_rates=map_init_simple_feedback_v2)
+
+        generate_start_guess(state_info, start_guess, perturb_vec,
+        simple_feedback_model_log, times_run=times_run, alg_choose=alg_use,
+        map_init_rates=map_init_simple_feedback_log, log_space=true)
 
 elseif model_use == "snf1_feedback"
     @printf("SNF1 feedback model\n")
@@ -68,10 +55,10 @@ elseif model_use == "snf1_feedback"
     perturb_vec = [9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 9.8, 0.5]
     start_guess = StartGuess([5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0], [], [3.82], [1.0],
         ["k1", "k3", "k4", "k5", "k6", "k8", "k9", "SUC20", "a1"])
+
     generate_start_guess(state_info, start_guess, perturb_vec,
         snf1_feedback_model, times_run=times_run, alg_choose=alg_use)
 else
-
     @printf("Error: Model provided does not exist\n")
     exit(1)
 end
