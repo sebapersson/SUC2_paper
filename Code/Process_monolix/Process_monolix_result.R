@@ -450,6 +450,7 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated=F)
       data_sum <- data_sum %>% mutate(type = "observed")
       data_sim_suc2 <- data_agg_sim %>% filter(state == "SUC2") %>% filter(t < 480)
       data_min_max <- tibble(x = c(min(data_sim_suc2$t), max(c(data_sim_suc2$t, 500))), 
+                             #y = c(2, 15))
                              y = c(min(data_sim_suc2$quant05), max(data_sim_suc2$quant95)))
 
       p <- ggplot(data_sim_suc2, aes(t, median)) + 
@@ -463,6 +464,7 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated=F)
         geom_line(data_sum, mapping=aes(time, quant05), color = "black", size = 1.2, linetype = 2) +
         geom_rangeframe(data=data_min_max, mapping=aes(x=x, y=y)) +
         labs(x = "Time [min]", y = TeX("YFP intesity \\[A.U $\\times 10^{-2}$\\]")) + 
+        #ylim(2, 15) + 
         my_theme
       
     }else{
@@ -545,8 +547,9 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save, plot_small_shift
     data <- data_raw %>%
       select(t, id, SUC2) %>%
       group_by(t) %>%
-      summarise(mean = mean(SUC2, na.rm = T), 
-                sd = sd(SUC2, na.rm = T)) %>%
+      summarise(median = median(SUC2, na.rm = T), 
+                quant05 = quantile(SUC2, 0.20, na.rm = T), 
+                quant95 = quantile(SUC2, 0.80, na.rm = T)) %>%
       mutate(type = delete_list[i])
     
     # Select columns to take 
@@ -559,13 +562,13 @@ plot_snf1_model_deletions <- function(path_to_result, dir_save, plot_small_shift
   
   data_exp <- do.call(rbind, data_list) %>%
     mutate(t = as.factor(t), type = as.factor(type)) %>%
-    mutate(y_frame = mean + sd)
+    mutate(y_frame = quant95)
   data_exp$y_frame[1] <- 0
   
   my_blue_scale <- brewer.pal(9, "Blues")[-c(1, 2)]
-  p <- ggplot(data_exp, aes(type, mean, fill = t)) + 
+  p <- ggplot(data_exp, aes(type, median, fill = t)) + 
     geom_bar(stat='identity', position='dodge', color ="black") +
-    geom_errorbar(aes(ymin = mean-sd, ymax = mean+sd), width=0.2, position=position_dodge(.9)) + 
+    geom_errorbar(aes(ymin = quant05, ymax = quant95), width=0.2, position=position_dodge(.9)) + 
     scale_x_discrete(limit = c("wt", "dsnf1", "dsnf1_x", "dx"), 
                      labels = c("wt", "Δsnf1", "Δsnf1_x", "Δx")) +
     geom_rangeframe(aes(type, y_frame), sides = "l",) + 
@@ -666,9 +669,9 @@ process_monolix_result <- function(path_to_result, out_signals, out_signals_name
 
 path_to_result <- "../Monolix_code/Simple_feedback/Simple_feedback"
 process_monolix_result(path_to_result, "observation", "SUC2", "Simple_feedback", 
-                       param_save = "k3", plot_dist_tau_x = T)
-plot_simulated_data(path_to_result, "Test/")
+                       param_save = "k6", plot_dist_tau_x = T)
 
 path_to_result <- "../Monolix_code/Snf1_feedback/Snf1_feedback"
+plot_simulated_data(path_to_result, "Test/")
 process_monolix_result(path_to_result, "observation", "SUC2", "Snf1_feedback", 
                        plot_deletions = T, plot_small_shift = T)
