@@ -9,14 +9,14 @@ Variables:
 
 
 [LONGITUDINAL]
-input = {k1, k2, k3, k4, k5, k6, k7, k8, k10}
+input = {k1, k2, k3, k4, k5, k6, k7, k8, k9, k10}
 
 EQUATION:
 ; From ensuring a steady-state 
 Mig10 = k2 / k5
 SUC20 = k6 / ((0.1 + Mig10^1)*k7)
 X0 = 0
-k9 = k8 * SUC20
+
 
 ; Initial conditions
 Mig1p0 = 0.0
@@ -27,7 +27,7 @@ SUC2_0 = SUC20
 X_0 = X0
 SNF1p_0 = 0
 
-max_sig = k1 / (k1 / 2.667 + k10 * X0) + 0.33
+max_sig =3
 
 ; Assuming 32 minutes maturation time 
 tau_SUC2 = 32
@@ -47,7 +47,7 @@ ddt_SNF1p = k1 - rate_down  - k10 * SNF1p * X
 ddt_Mig1 = k2 - k3*SNF1p*Mig1 + k4*Mig1p - k5*(1 + 1 /(1 + exp(-max_sig * (SNF1p-4.5/max_sig) ) ) ) * Mig1 
 ddt_Mig1p = k3*SNF1p*Mig1 - k4*Mig1p - k5*(1 + 1 /(1 +  exp(-max_sig * (SNF1p-4.5/max_sig) ) ) ) * Mig1p
 ddt_SUC2 = k6 / (0.1+ delay(Mig1, tau_SUC2)^1) - k7 * SUC2
-ddt_X =  k8 * SUC2  - k9
+ddt_X =  k8 * (SUC2-SUC20)  - k9*X
 
 
 OUTPUT:

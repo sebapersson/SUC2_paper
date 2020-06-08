@@ -672,7 +672,7 @@ end
 # Returns:
 #   best_start_guess, the best start guess
 function generate_start_guess(state_info, start_guess, perturb_vec, model;
-    alg_choose=3, times_run=100, map_init_rates=empty)
+    alg_choose=3, times_run=100, map_init_rates=empty, log_space=false)
 
     Random.seed!(123)
     # Read data
@@ -700,7 +700,15 @@ function generate_start_guess(state_info, start_guess, perturb_vec, model;
 
         # Solve the optmisation problem
         opt = Opt(alg_opt, n_param)
-        opt.lower_bounds = 0.0
+
+        # Handle log-spcae
+        if log_space
+            opt.lower_bounds = -Inf
+            opt.initial_step = 0.1
+        else
+            opt.lower_bounds = 0.0
+        end
+
         opt.upper_bounds = Inf
         opt.maxeval = 1000
 
