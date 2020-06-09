@@ -115,14 +115,12 @@ cd ./Generate_start_guess/
 echo "Generating start guesses"
 run_julia "Generate_start_guess.jl" "simple_feedback" "3" "100"
 check_return_code $? "Generating start guess"
-run_julia "Generate_start_guess.jl" "snf1_feedback" "3" "100"
-check_return_code $? "Generating start guess"
 
 # Run the STS optimisation
 cd ../STS
 echo "Running STS"
-#run_julia "Perform_STS.jl" "simple_feedback" "3"
-#check_return_code $? "Doing STS"
+run_julia "Perform_STS.jl" "simple_feedback" "3"
+check_return_code $? "Doing STS"
 run_julia "Perform_STS.jl" "simple_feedback_fixed" "3"
 check_return_code $? "Doing STS"
 

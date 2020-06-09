@@ -88,7 +88,8 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated = F)
       data_sum <- data_SUC2_sum
       data_sim_suc2 <- data_agg_sim %>% filter(state == "SUC2") %>% filter(time < 480)
       data_min_max <- tibble(x = c(min(data_sim_suc2$time), max(c(data_sim_suc2$time, 500))), 
-                             y = c(min(data_sim_suc2$quant05), max(data_sim_suc2$quant95)))
+                             y = c(2, 15))
+                             #y = c(min(data_sim_suc2$quant05), max(data_sim_suc2$quant95)))
       
       p <- ggplot(data_sim_suc2, aes(time, median)) + 
         geom_line(size = 1.2, color = my_colors[1]) + 
@@ -100,7 +101,8 @@ plot_simulated_data <- function(path_to_result, dir_save, extrapolated = F)
         geom_line(data_sum, mapping=aes(time, quant95), color = "black", size = 1.2, linetype = 2) +
         geom_line(data_sum, mapping=aes(time, quant05), color = "black", size = 1.2, linetype = 2) +
         geom_rangeframe(data=data_min_max, mapping=aes(x=x, y=y)) +
-        labs(x = "Time [min]", y = TeX("YFP-intensity \\[A.U $\\times 10^{-2}$\\]")) + 
+        labs(x = "Time [min]", y = TeX("YFP intensity \\[A.U $\\times 10^{-2}$\\]")) + 
+        ylim(2.0, 15) + 
         my_theme
       
     }else{
@@ -167,15 +169,19 @@ plot_IPRED <- function(path_to_result, dir_save)
 #   param_save, an argument for a specific parameter to save 
 # Returns:
 #   void 
-plot_qq_param <- function(path_to_result, dir_save, param_save = F)
+plot_qq_param <- function(path_to_result, dir_save, param_save = F, log_space = F)
 {
   # Plot distribution tau-feedback 
   path_param <- str_c(path_to_result, "Estimated_param.csv")
   data_param <- read_csv(path_param, col_types = cols())
   
   data_qq_param <- data_param %>%
-    select(-id, -a1) %>%
+    select(-id, -a1) 
+  
+  if(log_space == F){
+    data_qq_param <- data_qq_param %>%
     mutate_all(log)
+  }
   names_list <- names(data_qq_param)
   plot_list <- lapply(names_list, function(i){
     data_plot <- data_qq_param %>%
@@ -197,8 +203,13 @@ plot_qq_param <- function(path_to_result, dir_save, param_save = F)
     if(param_save != F){
     data_par <- data_param %>%
       select(param_save) %>%
-      mutate_all(log) %>%
       rename("obs" = param_save)
+    
+    if(log_space == F){
+      data_par <- data_par %>%
+        mutate_all(log) 
+    }
+    
     data_point <- tibble(x = qqnorm(data_par$obs)$x, y = qqnorm(data_par$obs)$y)
     data_line <- robcbi::QQline(data_par$obs)
     p <- ggplot(data_point, aes(x, y)) + 
@@ -216,22 +227,22 @@ plot_qq_param <- function(path_to_result, dir_save, param_save = F)
 
 
 # The version with none fixed parameters
-path_to_result <- "../../Intermediate/STS/simple_feedback_model/LN_BOBYQA/"
-dir_save <- "../../Result/STS/Simple_feedback/"
+path_to_result <- "../../Intermediate/STS/simple_feedback_model_log/LN_BOBYQA/"
+dir_save <- "../../Result/STS/Simple_feedback_log/"
 # Sanity check that results exist 
 if(!dir.exists(path_to_result)) return(1)
 r1 <- plot_simulated_data(path_to_result, dir_save)
 r2 <- plot_IPRED(path_to_result, dir_save)
-r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k3")
+r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k3", log_space = T)
 if(r1 + r2 + r3 != 0) return(1)
 
 
-# The version with two (k5, k8) fixed parameters
-path_to_result <- "../../Intermediate/STS/simple_feedback_model_fixed_sts/LN_BOBYQA/"
-dir_save <- "../../Result/STS/Simple_feedback_fixed/"
+# The version with none fixed parameters
+path_to_result <- "../../Intermediate/STS/simple_feedback_model_log_fixed/LN_BOBYQA/"
+dir_save <- "../../Result/STS/Simple_feedback_log_fixed/"
 # Sanity check that results exist 
 if(!dir.exists(path_to_result)) return(1)
 r1 <- plot_simulated_data(path_to_result, dir_save)
 r2 <- plot_IPRED(path_to_result, dir_save)
-r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k3")
+r3 <- plot_qq_param(path_to_result, dir_save, param_save = "k6", log_space = T)
 if(r1 + r2 + r3 != 0) return(1)
