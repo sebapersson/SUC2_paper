@@ -1,6 +1,6 @@
 # About 
 
-This is the GitHub repository for the manuscript *Work in progress* [1]. This repository contains all the code required for reproducing the modelling results presented in the manuscript. 
+This is the GitHub repository for the manuscript Fine-tuning of energy levels regulates SUC2 via a SNF1-dependent feedback loop [1]. This repository contains all the code required for reproducing the modelling results presented in the paper. 
 
 The aim of the modelling was to elucidate the mechanism behind recently collected single-cell time-lapse data of the *SUC2*-gene expression upon long term glucose starvation (Fig. 1) in *Saccharomyces cerevisiae*. To model the single-cell time-lapse data in an ODE-framework, two methods were used and compare. The standard two stage (STS) approach [2], and non-linear mixed effects (NLME) modelling [3]. What causes the decrease in *SUC2*-expression (Fig. 1) is currently unknown. In the manuscript we propose, by combining dynamic modelling and experimental data, a mechanism for this decrease.  
 
@@ -8,7 +8,7 @@ The aim of the modelling was to elucidate the mechanism behind recently collecte
 ![fig:1](https://i.imgur.com/GfE4uA5.jpg)
 <font size="1.5"> **Figure 1:** *Single cell SUC2 gene expression measured via YFP in *S. cerevisiae* when the external glucose is reduced from 4 % to 0.1 % at time zero. The black lines corresponds to the observed 0.05, 0.5 and 0.95 quantiles, while the blue line are four randomly chosen cells.* </font>
 
-To fully replicate the result presented in the manuscript the requirements in the **Requirements for replication of result** section should be fulfilled. Given this, the result should be reproducible by running the *Run_all.sh*-script, which can be found in the Code directory. 
+To **fully replicate** the result presented in the manuscript the requirements in the **Requirements for replication of result** section should be fulfilled. Given this, the result should be reproducible by running the *Run_all.sh*-script, which can be found in the Code directory. 
 
 ## Repository structure
 
@@ -59,7 +59,7 @@ Three programming languages are required for reproducing the results, Julia (ver
 
 
 ## References 
-1. Work in progress 
+1. Persson S, Welkenhysen N, Shashkova S, Cvijovic M. Fine-tuning of energy levels regulates SUC2 via a SNF1-dependent feedback loop. Front. Physiol. 2020; 11:954
 2. Karlsson M, Janzén DL, Durrieu L, Colman-Lerner A, Kjellsson MC, Cedersund G. Nonlinear mixed-effects modelling for single cell estimation: when, why, and how to use it. BMC systemsbiology. 2015;9(1):52.
 3. Davidian M, Giltinan DM. Nonlinear models for repeated measurement data: an overview and update. Journal of agricultural, biological, and environmental statistics. 2003;8(4):387.
 4. Bezanson J, Edelman A, Karpinski S, Shah VB. Julia: A Fresh Approach to Numerical Computing. SIAM. 2017;59(1):65–98.
